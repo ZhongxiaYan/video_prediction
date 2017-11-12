@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
 
 import os
 
 from util import *
 
-dataset_directory = os.path.dirname(__file__)
+dataset_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'squats_L_1')
 
 def load_dataset(type):
     assert type in ['train', 'val', 'test']
@@ -15,8 +16,11 @@ def load_dataset(type):
     poses = {}
     for v_name in video_names:
         v = np.load(type_dir + v_name + '/video.npy')
+        new_v = []
+        for frame in v:
+            new_v.append(np.array(Image.fromarray(frame).convert('L')).reshape((224, 224, 1)))
         p = np.load(type_dir + v_name + '/poses_L_1.npy')
-        videos[v_name] = v
+        videos[v_name] = np.array(new_v)
         poses[v_name] = p
     return videos, poses
 

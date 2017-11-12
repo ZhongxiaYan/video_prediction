@@ -80,29 +80,29 @@ def vgg(input, process_input=True):
     pool_ = lambda x: max_pool(x, 2, 2)
     conv_ = lambda x, output_depth, name: conv(x, 3, output_depth, 1, name=name)
     
-    conv_1_1 = conv_(input, 64, 'conv1_1')
-    conv_1_2 = conv_(conv_1_1, 64, 'conv1_2')
-    pool_1 = pool_(conv_1_2)
+    conv1_1 = conv_(input, 64, 'conv1_1')
+    conv1_2 = conv_(conv1_1, 64, 'conv1_2')
+    pool1 = pool_(conv1_2)
 
-    conv_2_1 = conv_(pool_1, 128, 'conv2_1')
-    conv_2_2 = conv_(conv_2_1, 128, 'conv2_2')
-    pool_2 = pool_(conv_2_2)
+    conv2_1 = conv_(pool1, 128, 'conv2_1')
+    conv2_2 = conv_(conv2_1, 128, 'conv2_2')
+    pool2 = pool_(conv2_2)
 
-    conv_3_1 = conv_(pool_2, 256, 'conv3_1')
-    conv_3_2 = conv_(conv_3_1, 256, 'conv3_2')
-    conv_3_3 = conv_(conv_3_2, 256, 'conv3_3')
-    pool_3 = pool_(conv_3_3)
+    conv3_1 = conv_(pool2, 256, 'conv3_1')
+    conv3_2 = conv_(conv3_1, 256, 'conv3_2')
+    conv3_3 = conv_(conv3_2, 256, 'conv3_3')
+    pool3 = pool_(conv3_3)
 
-    conv_4_1 = conv_(pool_3, 512, 'conv4_1')
-    conv_4_2 = conv_(conv_4_1, 512, 'conv4_2')
-    conv_4_3 = conv_(conv_4_2, 512, 'conv4_3')
-    pool_4 = pool_(conv_4_3)
+    conv4_1 = conv_(pool3, 512, 'conv4_1')
+    conv4_2 = conv_(conv4_1, 512, 'conv4_2')
+    conv4_3 = conv_(conv4_2, 512, 'conv4_3')
+    pool4 = pool_(conv4_3)
 
-    conv_5_1 = conv_(pool_4, 512, 'conv5_1')
-    conv_5_2 = conv_(conv_5_1, 512, 'conv5_2')
-    conv_5_3 = conv_(conv_5_2, 512, 'conv5_3')
-    pool_5 = pool_(conv_5_3)
-    flattened = tf.contrib.layers.flatten(pool_5)
+    conv5_1 = conv_(pool4, 512, 'conv5_1')
+    conv5_2 = conv_(conv5_1, 512, 'conv5_2')
+    conv5_3 = conv_(conv5_2, 512, 'conv5_3')
+    pool5 = pool_(conv5_3)
+    flattened = tf.contrib.layers.flatten(pool5)
 
     fc_6 = dropout(fc(flattened, 4096, 'fc6'), 0.5)
     fc_7 = fc(fc_6, 4096, 'fc7', relu=False)
@@ -112,18 +112,18 @@ def vgg_simple(input):
     pool_ = lambda x: max_pool(x, 2, 2)
     conv_ = lambda x, output_depth, name: conv(x, 3, output_depth, 1, name=name)
     
-    conv_1_1 = conv_(input, 16, 'conv1_1')
-    pool_1 = pool_(conv_1_1)
-    conv_2_1 = conv_(pool_1, 32, 'conv2_1')
-    pool_2 = pool_(conv_2_1)
-    conv_3_1 = conv_(pool_2, 64, 'conv3_1')
-    pool_3 = pool_(conv_3_1)
-    conv_4_1 = conv_(pool_3, 64, 'conv4_1')
-    pool_4 = pool_(conv_4_1)
-    conv_5_1 = conv_(pool_4, 64, 'conv5_1')
-    pool_5 = pool_(conv_5_1)
+    conv1_1 = conv_(input, 16, 'conv1_1')
+    pool1 = pool_(conv1_1)
+    conv2_1 = conv_(pool1, 32, 'conv2_1')
+    pool2 = pool_(conv2_1)
+    conv3_1 = conv_(pool2, 64, 'conv3_1')
+    pool3 = pool_(conv3_1)
+    conv4_1 = conv_(pool3, 64, 'conv4_1')
+    pool4 = pool_(conv4_1)
+    conv5_1 = conv_(pool4, 64, 'conv5_1')
+    pool5 = pool_(conv5_1)
     
-    flattened = tf.contrib.layers.flatten(pool_5)
+    flattened = tf.contrib.layers.flatten(pool5)
     fc_6 = dropout(fc(flattened, 4096, 'fc6'), 0.5)
     fc_7 = fc(fc_6, 4096, 'fc7', relu=False)
     return fc_7
@@ -166,7 +166,7 @@ def alexnet(input):
 
 def get_minibatch(batch_size, videos, poses):
     batch_data = []
-    video_ids = videos.keys()
+    video_ids = list(videos.keys())
     n_videos = len(video_ids)
     for _ in range(batch_size):
         v_i = video_ids[np.random.randint(n_videos)]

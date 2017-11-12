@@ -5,16 +5,16 @@ from util import *
 from base_model import NNBase
 
 def load_model(config, sess):
-    return VanillaGAN(config, sess)
+    return ResidualGAN(config, sess)
 
-class VanillaGAN(NNBase):
+class ResidualGAN(NNBase):
     def __init__(self, config, sess):
         super().__init__(config, sess)
         self.global_step = tf.get_variable('global_step', initializer=0, trainable=False)
 
-        self.f_t = tf.placeholder(tf.float32, [None, 224, 224, 3])
+        self.f_t = tf.placeholder(tf.float32, [None, 224, 224, 1])
         self.p_t = tf.placeholder(tf.float32, [None, 224, 224, 1])
-        self.f_t_n = tf.placeholder(tf.float32, [None, 224, 224, 3])
+        self.f_t_n = tf.placeholder(tf.float32, [None, 224, 224, 1])
         self.p_t_n = tf.placeholder(tf.float32, [None, 224, 224, 1])
 
         # generator output
@@ -28,14 +28,18 @@ class VanillaGAN(NNBase):
         with tf.variable_scope('generator'):
             # generator losses
             l2_loss_gen = l2_loss(self.f_t_n, self.f_t_n_pred)
-            C1_f_t = self.C1(self.f_t)
-            feat_loss_gen = l2_loss(C1_f_t, self.C1(self.f_t_n_pred, reuse=True))
             adv_loss_gen = -tf.reduce_mean(tf.log(pr_real_gen))
-            self.loss_gen = config.l2_coef * l2_loss_gen + config.adv_coef * adv_loss_gen + config.feat_coef * feat_loss_gen
+
+            pose_map = (self.p_t + self.p_t_n) / 256.0
+            pose_loss_gen = l2_loss(self.f_t_n * pose_map, self.f_t_n_pred * pose_map)
+
+            self.loss_gen = config.l2_coef * l2_loss_gen \
+                          + config.adv_coef * adv_loss_gen \
+                          + config.pose_coef * pose_loss_gen
             self.summs_gen = tf.summary.merge([
                 tf.summary.scalar('l2_loss', l2_loss_gen),
-                tf.summary.scalar('feat_loss', feat_loss_gen),
                 tf.summary.scalar('adv_loss', adv_loss_gen),
+                tf.summary.scalar('pose_loss', pose_loss_gen),
                 tf.summary.scalar('loss', self.loss_gen)
             ])
 
@@ -53,7 +57,7 @@ class VanillaGAN(NNBase):
             ])
 
         variables_gen = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='generator')
-        self.opt_gen = tf.train.GradientDescentOptimizer(learning_rate=config.lr_gen).minimize(self.loss_gen, var_list=variables_gen, global_step=self.global_step)
+        self.opt_gen = tf.train.AdamOptimizer(learning_rate=config.lr_gen).minimize(self.loss_gen, var_list=variables_gen, global_step=self.global_step)
 
         variables_disc = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='discriminator')
         self.opt_disc = tf.train.GradientDescentOptimizer(learning_rate=config.lr_disc).minimize(self.loss_disc, var_list=variables_disc)
@@ -112,21 +116,36 @@ class VanillaGAN(NNBase):
         
     def f_img(self, input):
         with tf.variable_scope('f_img'):
-            return vgg(input, process_input=True)
+            return self.vgg_shallow(input)
         
     def f_dec(self, input):
+        l_outs = self.layer_outputs
         with tf.variable_scope('f_dec'):
             reshaped = tf.reshape(input, shape=[tf.shape(input)[0], 1, 1, 4096])
-            return vgg_deconv(reshaped)
-        
-    def C1(self, input, reuse=False):
-        alex_input = tf.image.resize_images(input, [227, 227])
-        with tf.variable_scope('C1', reuse=reuse):
-            return alexnet(alex_input)
+
+            deconv6_2 = deconv(reshaped, 7, 128, 1, 'deconv6_2', padding='VALID')
+            deconv6_1 = deconv(deconv6_2, 3, 128, 2, 'deconv6_1')
+
+            deconv5_2 = deconv(deconv6_1, 3, 128, 1, 'deconv5_2')
+            deconv5_1 = deconv(deconv5_2, 3, 128, 2, 'deconv5_1')
+            
+            deconv4_2 = deconv(deconv5_1, 3, 128, 1, 'deconv4_2')
+            deconv4_1 = deconv(deconv4_2, 3, 64, 2, 'deconv4_1')
+            deconv4 = tf.concat([deconv4_1, l_outs['generator/f_img/conv3_1']], axis=-1)
+
+            deconv3_2 = deconv(deconv4, 3, 64, 1, 'deconv3_2')
+            deconv3_1 = deconv(deconv3_2, 3, 32, 2, 'deconv3_1')
+
+            deconv2_2 = deconv(deconv3_1, 3, 32, 1, 'deconv2_2')
+            deconv2_1 = deconv(deconv2_2, 3, 16, 2, 'deconv2_1')
+            deconv2 = tf.concat([deconv2_1, l_outs['generator/f_img/conv1_1']], axis=-1)
+
+            deconv1_2 = deconv(deconv2, 3, 16, 1, 'deconv1_2')
+            deconv1_1 = deconv(deconv1_2, 3, 1, 1, 'deconv1_1')
+            return deconv1_1
     
     def init_pretrained_weights(self):
-        self.load_alexnet_weights(['generator/C1'])
-        self.load_vgg_weights(['generator/f_img', 'discriminator/f_img'])
+        pass
 
     def fit_batch_gen(self, f_t, p_t, f_t_n, p_t_n):
         _, loss, summs = self.sess.run((self.opt_gen, self.loss_gen, self.summs_gen), feed_dict={ self.p_t : p_t, self.p_t_n : p_t_n, self.f_t : f_t, self.f_t_n : f_t_n })
