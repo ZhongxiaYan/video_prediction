@@ -1,9 +1,11 @@
+from __future__ import print_function, division
+
 import numpy as np
 import tensorflow as tf
 
 from util import *
 
-class NNBase:
+class NNBase(object):
     def __init__(self, config, sess):
         self.config = config
         self.sess = sess

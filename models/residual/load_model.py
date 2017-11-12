@@ -9,7 +9,7 @@ def load_model(config, sess):
 
 class ResidualGAN(NNBase):
     def __init__(self, config, sess):
-        super().__init__(config, sess)
+        super(ResidualGAN, self).__init__(config, sess)
         self.global_step = tf.get_variable('global_step', initializer=0, trainable=False)
 
         self.f_t = tf.placeholder(tf.float32, [None, 224, 224, 1])
