@@ -6,6 +6,8 @@ from easydict import EasyDict as edict
 
 from util import *
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 flags = tf.app.flags
 
 # required arguments
@@ -35,7 +37,9 @@ def main(argv):
     # check for existing checkpoints
     train_dir = os.path.join(config_dir, 'train')
     ckpt = tf.train.get_checkpoint_state(train_dir)
-    if not ckpt and not FLAGS.train:
+    if ckpt:
+        print('Latest checkpoint:', ckpt.model_checkpoint_path)
+    elif not FLAGS.train:
         print('Cannot find checkpoint to test from, exiting')
         exit()
 
