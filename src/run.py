@@ -20,7 +20,7 @@ flags.DEFINE_string('config', 'default', 'Config for the model')
 flags.DEFINE_boolean('train', True, 'True for training, False for testing phase. Default [True]')
 flags.DEFINE_string('test_set', 'train', 'Dataset used for testing. Default: ["train"]')
 # flags.DEFINE_boolean('test', True, 'True for training, False for testing phase. Default [True]')
-flags.DEFINE_string('gpu', None, 'GPU number. Default [None]')
+flags.DEFINE_string('gpu', '0', 'GPU number. Default [0]')
 FLAGS = flags.FLAGS
 
 def main(argv):
