@@ -179,6 +179,21 @@ def get_minibatch(batch_size, videos, poses):
         batch_data.append((video[f_i1], pose[f_i1], video[f_i2], pose[f_i2]))
     return zip(*batch_data)
 
+def generate_heatmap(x, y, w_orig, h_orig, zeros, sigma=5, w_new=224, h_new=224):
+    sigma_y = sigma * h_new / h_orig
+    sigma_x = sigma * w_new / w_orig
+    y_radius = int(sigma_y * 3) + 1
+    x_radius = int(sigma_x * 3) + 1
+    x_int = int(np.round(x))
+    y_int = int(np.round(y))
+    x_start, x_end = max(0, x_int - x_radius), min(w_new, x_int + x_radius + 1)
+    y_start, y_end = max(0, y_int - y_radius), min(h_new, y_int + y_radius + 1)
+    xx, yy = np.meshgrid(np.arange(x_start, x_end), np.arange(y_start, y_end))
+
+    zz = np.exp(-0.5 * ((xx - x) ** 2 / (sigma_x ** 2) + (yy - y) ** 2 / (sigma_y ** 2))) * 255
+
+    zeros[y_start : y_end, x_start : x_end] += zz.astype(np.uint8)
+
 def list_dir(dir, ext, return_name=False):
     ext = '.' + ext.lower()
     if return_name:
