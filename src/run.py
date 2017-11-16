@@ -22,7 +22,7 @@ flags.DEFINE_string('test_set', 'train', 'Dataset used for testing. Default: ["t
 flags.DEFINE_string('gpu', '0', 'GPU number. Default [0]')
 flags.DEFINE_string('overrides', '', 'Override for parameters in the config file. Specify like "--overrides lr=0.5,l2_loss=0.1". Also need to specify new_config')
 flags.DEFINE_string('new_config', None, 'New config directory to make to store new json with overrides')
-flags.DEFINE_string('save_root', '/media/deoraid03/jeff/video_prediction/', 'Checkpoints will be saved in subdirectories of this root. Symlinks will point to train subdirectories. Default: ["/media/deoraid03/jeff/video_prediction/"]')
+flags.DEFINE_string('save_root', '', 'Checkpoints will be saved in subdirectories of this root. Symlinks will point to train subdirectories. Default: ["/media/deoraid03/jeff/video_prediction/"]')
 FLAGS = flags.FLAGS
 
 def apply_overrides(config, override_string):
@@ -101,7 +101,7 @@ def main(argv):
         saver.restore(sess, ckpt.model_checkpoint_path)
     else:
         sess.run(tf.global_variables_initializer())
-        model.init_pretrained_weights()
+        model.init_pretrained_weights(sess)
 
     if FLAGS.train:
         # train model

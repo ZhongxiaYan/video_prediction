@@ -11,6 +11,9 @@ Src = Src + '/'
 Data = os.path.join(Root, 'data') + '/'
 Models = os.path.join(Root, 'models') + '/'
 
+def lrelu(x, alpha):
+    return tf.maximum(x, alpha*x)
+
 def conv(x, filter_size, num_filters, stride, name, padding='SAME', groups=1, trainable=True):
     input_channels = int(x.get_shape()[-1])
 
@@ -37,7 +40,7 @@ def conv(x, filter_size, num_filters, stride, name, padding='SAME', groups=1, tr
             # Concat the convolved output together again
             conv = tf.concat(output_groups, axis=3)
 
-        return tf.nn.relu(conv + biases)
+        return lrelu(conv + biases, 0.01)
 
 def deconv(x, filter_size, num_filters, stride, name, padding='SAME', relu=True, tanh=False):
     activation = None
@@ -55,7 +58,7 @@ def fc(x, num_out, name, relu=True, trainable=True):
         biases = tf.get_variable('b', [num_out], initializer=tf.zeros_initializer(), trainable=trainable)
         x = tf.matmul(x, weights) + biases
         if relu:
-            x = tf.nn.relu(x) 
+            x = lrelu(x, 0.01) 
     return x
 
 def lrn(x, radius, alpha, beta, name, bias=1.0):

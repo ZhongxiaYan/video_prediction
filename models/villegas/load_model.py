@@ -7,6 +7,7 @@ from base_model import NNBase
 def load_model(config, sess):
     return ResidualConv(config, sess)
 
+
 class ResidualConv(NNBase):
     def __init__(self, config, sess):
         super(ResidualConv, self).__init__(config, sess)
@@ -16,6 +17,10 @@ class ResidualConv(NNBase):
         self.p_t = tf.placeholder(tf.float32, [None, 224, 224, 13])
         self.f_t_n = tf.placeholder(tf.float32, [None, 224, 224, 1])
         self.p_t_n = tf.placeholder(tf.float32, [None, 224, 224, 13])
+        self.f_t = (self.f_t/255. - 0.5)*2
+        self.p_t = (self.p_t/255. - 0.5)*2
+        self.f_t_n = (self.f_t_n/255. - 0.5)*2 
+        self.p_t_n = (self.p_t_n/255. - 0.5)*2
         p_t_flat = tf.reduce_sum(self.p_t, axis=-1, keep_dims=True)
         p_t_n_flat = tf.reduce_sum(self.p_t_n, axis=-1, keep_dims=True)
 
@@ -44,7 +49,7 @@ class ResidualConv(NNBase):
 
         with tf.variable_scope('discriminator'):
             # discriminator losses
-            real_loss = -tf.reduce_mean(tf.maximum(tf.log(pr_real_true),0.01))
+            real_loss = -tf.reduce_mean(tf.log(tf.maximum(pr_real_true, 0.01)))
             gen_loss = -tf.reduce_mean(tf.log(1.01 - pr_real_gen))
             mismatch_loss = -tf.reduce_mean(tf.log(1.01 - pr_real_mismatch))
             self.loss_disc = config.real_coef * real_loss + config.gen_coef * gen_loss + config.mismatch_coef * mismatch_loss
@@ -59,7 +64,7 @@ class ResidualConv(NNBase):
         self.opt_gen = tf.train.AdamOptimizer(learning_rate=config.lr_gen).minimize(self.loss_gen, var_list=variables_gen, global_step=self.global_step)
 
         variables_disc = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='discriminator')
-        self.opt_disc = tf.train.AdamOptimizer(learning_rate=config.lr_disc).minimize(self.loss_disc, var_list=variables_disc)
+        self.opt_disc = tf.train.GradientDescentOptimizer(learning_rate=config.lr_disc).minimize(self.loss_disc, var_list=variables_disc)
 
     def train(self, saver, summary_writer, train_data, val_data, checkpoint_path):
         sess = self.sess
@@ -74,6 +79,7 @@ class ResidualConv(NNBase):
             loss_disc, summs_disc = self.fit_batch_disc(frames1, poses1, frames2, poses2)
             
             if np.isnan(loss_gen) or np.isnan(loss_disc):
+                print('nan')
                 return False
             disp_loss_gen += loss_gen / config.disp_interval
             disp_loss_disc += loss_disc / config.disp_interval
@@ -130,29 +136,47 @@ class ResidualConv(NNBase):
 
         prev = input
         for i, depth in enumerate(depths):
-            name = 'conv%s_1' % (2*i)
+            name = 'conv%s_1' % (i+1)
             convi_1 = conv_(prev, depth, name)
-            name = 'conv%s_1' % (2*i + 1)
+            name = 'conv%s_2' % (i+1)
             convi_2 = conv_(convi_1, depth, name)
-            prev = pool_(convi_2)
+            if (depth == 256):
+                name = 'conv%s_3' % (i+1)
+                convi_3 = conv_(convi_2, depth, name)
+                prev = pool_(convi_3)
+            else:    
+                prev = pool_(convi_2)
         return prev
     
     def f_dec(self, input):
         l_outs = self.layer_outputs
         with tf.variable_scope('f_dec'):
-            deconv3_3 = deconv(input, 3, 256, 2, 'deconv3_3')            
-            deconv3_2 = deconv(deconv4, 3, 256, 1, 'deconv3_2')
+            deconv3_4 = deconv(input, 3, 256, 2, 'deconv3_4')            
+            deconv3_3 = deconv(deconv3_4, 3, 256, 1, 'deconv3_3')
+            deconv3_2 = deconv(deconv3_3, 3, 256, 1, 'deconv3_2')
             deconv3_1 = deconv(deconv3_2, 3, 128, 2, 'deconv3_1')
-
+            
             deconv2_2 = deconv(deconv3_1, 3, 128, 1, 'deconv2_2')
             deconv2_1 = deconv(deconv2_2, 3, 64, 2, 'deconv2_1')
 
-            deconv1_2 = deconv(deconv2, 3, 64, 1, 'deconv1_2')
+            deconv1_2 = deconv(deconv2_1, 3, 64, 1, 'deconv1_2')
             deconv1_1 = deconv(deconv1_2, 3, 1, 1, 'deconv1_1', tanh=True)
             return deconv1_1
     
-    def init_pretrained_weights(self):
-        pass
+    def init_pretrained_weights(self, sess):
+        weights_dict = np.load('../models/vgg16.npy', encoding='bytes').item()
+        weights_dict = { key.decode('ascii') : value for key, value in weights_dict.items() }
+        with tf.variable_scope('generator/f_img', reuse=True):
+            for layer in ['conv1_2',
+                          'conv2_1', 'conv2_2',
+                          'conv3_1', 'conv3_2', 'conv3_3',
+                          ]:
+                with tf.variable_scope(layer):
+                    W_value, b_value = weights_dict[layer]
+                    W = tf.get_variable('W')
+                    b = tf.get_variable('b')
+                    sess.run(W.assign(W_value))
+                    sess.run(b.assign(b_value))
 
     def fit_batch_gen(self, f_t, p_t, f_t_n, p_t_n):
         _, loss, summs = self.sess.run((self.opt_gen, self.loss_gen, self.summs_gen), feed_dict={ self.p_t : p_t, self.p_t_n : p_t_n, self.f_t : f_t, self.f_t_n : f_t_n })
