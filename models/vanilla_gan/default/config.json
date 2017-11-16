@@ -1,5 +1,5 @@
 {
-    "dataset" : "squats_L_1",
+    "dataset" : "squats_L_1_old",
 
     "lr_gen" : 1e-4,
     "l2_coef" : 1,
