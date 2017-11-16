@@ -16,12 +16,12 @@ def conv(x, filter_size, num_filters, stride, name, padding='SAME', groups=1, tr
 
     # Create lambda function for the convolution
     convolve = lambda x, W: tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding=padding)
-
+    regularizer = tf.contrib.layers.l2_regularizer(1e-5)
     with tf.variable_scope(name):
         # Create tf variables for the weights and biases of the conv layer
         weights = tf.get_variable('W',
                                   shape=[filter_size, filter_size, input_channels // groups, num_filters],
-                                  initializer=tf.contrib.layers.xavier_initializer(),
+                                  initializer=tf.contrib.layers.xavier_initializer(), regularizer=regularizer,
                                   trainable=trainable)
         biases = tf.get_variable('b', shape=[num_filters], trainable=trainable, initializer=tf.zeros_initializer())
 
@@ -39,11 +39,14 @@ def conv(x, filter_size, num_filters, stride, name, padding='SAME', groups=1, tr
 
         return tf.nn.relu(conv + biases)
 
-def deconv(x, filter_size, num_filters, stride, name, padding='SAME', relu=True):
+def deconv(x, filter_size, num_filters, stride, name, padding='SAME', relu=True, tanh=False):
     activation = None
     if relu:
         activation = tf.nn.relu
-    return tf.layers.conv2d_transpose(x, num_filters, filter_size, stride, padding=padding, kernel_initializer=tf.contrib.layers.xavier_initializer(), activation=activation, name=name)
+    if tanh:
+        activation = tf.nn.tanh
+    regularizer = tf.contrib.layers.l2_regularizer(1e-5)
+    return tf.layers.conv2d_transpose(x, num_filters, filter_size, stride, padding=padding, kernel_regularizer=regularizer, kernel_initializer=tf.contrib.layers.xavier_initializer(), activation=activation, name=name)
     
 def fc(x, num_out, name, relu=True, trainable=True):
     num_in = int(x.get_shape()[-1])
@@ -192,7 +195,7 @@ def generate_heatmap(x, y, w_orig, h_orig, zeros, sigma=5, w_new=224, h_new=224)
 
     zz = np.exp(-0.5 * ((xx - x) ** 2 / (sigma_x ** 2) + (yy - y) ** 2 / (sigma_y ** 2))) * 255
 
-    zeros[y_start : y_end, x_start : x_end] += zz.astype(np.uint8)
+    zeros[y_start : y_end, x_start : x_end] += zz.astype(np.int16)
 
 def list_dir(dir, ext, return_name=False):
     ext = '.' + ext.lower()
