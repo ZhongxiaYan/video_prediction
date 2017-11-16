@@ -11,7 +11,7 @@ from util import *
 
 def load_dataset(type):
     assert type in ['train', 'val', 'test']
-    type_dir = os.path.join(Data, 'squats', type) + '/'
+    type_dir = os.path.join(Data, 'squats_L_1', type) + '/'
     labels_dir = os.path.join(Data, 'labels') + '/'
     video_names = os.listdir(type_dir)
     videos = {}
@@ -23,7 +23,7 @@ def load_dataset(type):
         annotations = loadmat(labels_dir + v_name + '.mat')
         visible = annotations['visibility']
         h, w, n = annotations['dimensions'][0]
-        poses = np.zeros((n, 224, 224, 13), dtype=np.uint8)
+        pose = np.zeros((n, 224, 224, 13), dtype=np.uint8)
 
         xs = annotations['x'] * 224 / w
         ys = annotations['y'] * 224 / h
@@ -33,8 +33,8 @@ def load_dataset(type):
                 if not visible[f_i][p_i]:
                     continue
                 x, y = xs[f_i][p_i], ys[f_i][p_i]
-                generate_heatmap(x, y, w, h, poses[f_i, :, :, p_i]) # from util
-        poses[v_name] = poses
+                generate_heatmap(x, y, w, h, pose[f_i, :, :, p_i]) # from util
+        poses[v_name] = pose
     return videos, poses
 
 def save_predictions(bundle, output_dir):
