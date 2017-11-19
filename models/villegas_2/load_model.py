@@ -17,10 +17,14 @@ class ResidualConv(NNBase):
         self.p_t = tf.placeholder(tf.float32, [None, 224, 224, 13])
         self.f_t_n = tf.placeholder(tf.float32, [None, 224, 224, 1])
         self.p_t_n = tf.placeholder(tf.float32, [None, 224, 224, 13])
-        self.f_t_norm = (self.f_t/255. - 0.5)*2
-        self.p_t_norm = (self.p_t/255. - 0.5)*2
-        self.f_t_n_norm = (self.f_t_n/255. - 0.5)*2 
-        self.p_t_n_norm = (self.p_t_n/255. - 0.5)*2
+        #self.f_t_norm = (self.f_t/255. - 0.5)*2
+        #self.p_t_norm = (self.p_t/255. - 0.5)*2
+        #self.f_t_n_norm = (self.f_t_n/255. - 0.5)*2 
+        #self.p_t_n_norm = (self.p_t_n/255. - 0.5)*2
+        self.f_t_norm = self.f_t
+        self.p_t_norm = self.p_t
+        self.f_t_n_norm = self.f_t_n
+        self.p_t_n_norm = self.p_t_n
         p_t_flat = tf.reduce_sum(self.p_t_norm, axis=-1, keep_dims=True)
         p_t_n_flat = tf.reduce_sum(self.p_t_n_norm, axis=-1, keep_dims=True)
 
@@ -104,15 +108,13 @@ class ResidualConv(NNBase):
     def generator_network(self, f_t, p_t, p_t_n):
         with tf.variable_scope('generator'):
             p_t_n_latent = self.f_pose(p_t_n)
-            latent = tf.concat((self.f_img(f_t), p_t_n_latent, self.f_pose(p_t, reuse=True)), axis=-1)
+            latent = self.f_img(f_t) + p_t_n_latent - self.f_pose(p_t, reuse=True)
             return self.f_dec(latent)
 
     def discriminator_network(self, f, p, reuse=False):
         with tf.variable_scope('discriminator', reuse=reuse):
-            f_latent = self.f_img(f)
-            p_latent = self.f_pose(p)
-            concat = tf.concat([f_latent, p_latent], axis=-1)
-            conv6 = conv(concat, 3, 128, 1, name='conv6')
+            concat = tf.concat([f, p], axis = -1)
+            conv6 = self.vgg_shallow_no_fc(concat, small_depth=True)
             flattened = tf.contrib.layers.flatten(conv6)
             fc7 = dropout(fc(flattened, 1024, name='fc7'), 0.5)
             return tf.nn.sigmoid(fc(fc7, 1, name='fc8', relu=False))

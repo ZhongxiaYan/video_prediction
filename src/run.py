@@ -14,15 +14,16 @@ flags = tf.app.flags
 
 # required arguments
 flags.DEFINE_string('model', None, 'The name of the model. model_dir should contain configs/ and checkpoint/ directories')
+flags.DEFINE_string('model_name', '', 'The name of the specific model to distinguish summary results')
 flags.DEFINE_string('config', 'default', 'Config for the model')
 
 # optional arguments
 flags.DEFINE_boolean('train', True, 'True for training, False for testing phase. Default [True]')
 flags.DEFINE_string('test_set', 'train', 'Dataset used for testing. Default: ["train"]')
-flags.DEFINE_string('gpu', '0', 'GPU number. Default [0]')
+flags.DEFINE_string('gpu', '3', 'GPU number. Default [0]')
 flags.DEFINE_string('overrides', '', 'Override for parameters in the config file. Specify like "--overrides lr=0.5,l2_loss=0.1". Also need to specify new_config')
 flags.DEFINE_string('new_config', None, 'New config directory to make to store new json with overrides')
-flags.DEFINE_string('save_root', '', 'Checkpoints will be saved in subdirectories of this root. Symlinks will point to train subdirectories. Default: ["/media/deoraid03/jeff/video_prediction/"]')
+flags.DEFINE_string('save_root', '/media/deoraid03/jeff/video_prediction/', 'Checkpoints will be saved in subdirectories of this root. Symlinks will point to train subdirectories. Default: ["/media/deoraid03/jeff/video_prediction/"]')
 FLAGS = flags.FLAGS
 
 def apply_overrides(config, override_string):
@@ -60,7 +61,7 @@ def main(argv):
     # check for existing checkpoints
     train_dir = os.path.join(config_dir, 'train')
     if FLAGS.save_root:
-        save_train_dir = os.path.join(FLAGS.save_root, 'models', FLAGS.model, FLAGS.config, 'train')
+        save_train_dir = os.path.join(FLAGS.save_root, 'models', FLAGS.model, FLAGS.config, 'train', FLAGS.model_name)
         make_dir(save_train_dir)
         
         if not os.path.exists(train_dir):

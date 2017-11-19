@@ -19,7 +19,7 @@ def conv(x, filter_size, num_filters, stride, name, padding='SAME', groups=1, tr
 
     # Create lambda function for the convolution
     convolve = lambda x, W: tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding=padding)
-    regularizer = tf.contrib.layers.l2_regularizer(1e-5)
+    regularizer = tf.contrib.layers.l2_regularizer(1e-6)
     with tf.variable_scope(name):
         # Create tf variables for the weights and biases of the conv layer
         weights = tf.get_variable('W',
@@ -40,7 +40,7 @@ def conv(x, filter_size, num_filters, stride, name, padding='SAME', groups=1, tr
             # Concat the convolved output together again
             conv = tf.concat(output_groups, axis=3)
 
-        return lrelu(conv + biases, 0.01)
+        return lrelu(conv + biases, 0.2)
 
 def deconv(x, filter_size, num_filters, stride, name, padding='SAME', relu=True, tanh=False):
     activation = None
@@ -48,7 +48,7 @@ def deconv(x, filter_size, num_filters, stride, name, padding='SAME', relu=True,
         activation = tf.nn.relu
     if tanh:
         activation = tf.nn.tanh
-    regularizer = tf.contrib.layers.l2_regularizer(1e-5)
+    regularizer = tf.contrib.layers.l2_regularizer(1e-6)
     return tf.layers.conv2d_transpose(x, num_filters, filter_size, stride, padding=padding, kernel_regularizer=regularizer, kernel_initializer=tf.contrib.layers.xavier_initializer(), activation=activation, name=name)
     
 def fc(x, num_out, name, relu=True, trainable=True):
@@ -58,7 +58,7 @@ def fc(x, num_out, name, relu=True, trainable=True):
         biases = tf.get_variable('b', [num_out], initializer=tf.zeros_initializer(), trainable=trainable)
         x = tf.matmul(x, weights) + biases
         if relu:
-            x = lrelu(x, 0.01) 
+            x = lrelu(x, 0.2) 
     return x
 
 def lrn(x, radius, alpha, beta, name, bias=1.0):
@@ -198,7 +198,7 @@ def generate_heatmap(x, y, w_orig, h_orig, zeros, sigma=5, w_new=224, h_new=224)
 
     zz = np.exp(-0.5 * ((xx - x) ** 2 / (sigma_x ** 2) + (yy - y) ** 2 / (sigma_y ** 2))) * 255
 
-    zeros[y_start : y_end, x_start : x_end] += zz.astype(np.int16)
+    zeros[y_start : y_end, x_start : x_end] += zz.astype(np.uint8)
 
 def list_dir(dir, ext, return_name=False):
     ext = '.' + ext.lower()

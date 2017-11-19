@@ -17,10 +17,10 @@ class ResidualConv(NNBase):
         self.p_t = tf.placeholder(tf.float32, [None, 224, 224, 13])
         self.f_t_n = tf.placeholder(tf.float32, [None, 224, 224, 1])
         self.p_t_n = tf.placeholder(tf.float32, [None, 224, 224, 13])
-        self.f_t_norm = (self.f_t/255. - 0.5)*2
-        self.p_t_norm = (self.p_t/255. - 0.5)*2
-        self.f_t_n_norm = (self.f_t_n/255. - 0.5)*2 
-        self.p_t_n_norm = (self.p_t_n/255. - 0.5)*2
+        self.f_t_norm = self.f_t
+        self.p_t_norm = self.p_t
+        self.f_t_n_norm = self.f_t_n
+        self.p_t_n_norm = self.p_t_n
         p_t_flat = tf.reduce_sum(self.p_t_norm, axis=-1, keep_dims=True)
         p_t_n_flat = tf.reduce_sum(self.p_t_n_norm, axis=-1, keep_dims=True)
 
@@ -109,10 +109,8 @@ class ResidualConv(NNBase):
 
     def discriminator_network(self, f, p, reuse=False):
         with tf.variable_scope('discriminator', reuse=reuse):
-            f_latent = self.f_img(f)
-            p_latent = self.f_pose(p)
-            concat = tf.concat([f_latent, p_latent], axis=-1)
-            conv6 = conv(concat, 3, 128, 1, name='conv6')
+            concat = tf.concat([f, p], axis = -1)
+            conv6 = self.vgg_shallow_no_fc(concat, small_depth=True)
             flattened = tf.contrib.layers.flatten(conv6)
             fc7 = dropout(fc(flattened, 1024, name='fc7'), 0.5)
             return tf.nn.sigmoid(fc(fc7, 1, name='fc8', relu=False))
@@ -130,9 +128,9 @@ class ResidualConv(NNBase):
         pool_ = lambda x: max_pool(x, 2, 2)
         conv_ = lambda x, output_depth, name: conv(x, 3, output_depth, 1, name=name)
         
-        depths = [64, 128, 256]
+        depths = [64, 128]
         if small_depth:
-            depths = [32, 64, 64]
+            depths = [32, 64]
 
         prev = input
         for i, depth in enumerate(depths):
@@ -140,26 +138,21 @@ class ResidualConv(NNBase):
             convi_1 = conv_(prev, depth, name)
             name = 'conv%s_2' % (i+1)
             convi_2 = conv_(convi_1, depth, name)
-            if (depth == 256):
-                name = 'conv%s_3' % (i+1)
-                convi_3 = conv_(convi_2, depth, name)
-                prev = pool_(convi_3)
-            else:    
-                prev = pool_(convi_2)
+            name = 'conv%s_3' % (i+1)
+            convi_3 = conv_(convi_2, depth, name)
+            prev = pool_(convi_3)
         return prev
     
     def f_dec(self, input):
         l_outs = self.layer_outputs
         with tf.variable_scope('f_dec'):
-            deconv3_4 = deconv(input, 3, 256, 2, 'deconv3_4')            
-            deconv3_3 = deconv(deconv3_4, 3, 256, 1, 'deconv3_3')
-            deconv3_2 = deconv(deconv3_3, 3, 256, 1, 'deconv3_2')
-            deconv3_1 = deconv(deconv3_2, 3, 128, 2, 'deconv3_1')
-            
-            deconv2_2 = deconv(deconv3_1, 3, 128, 1, 'deconv2_2')
+            deconv2_4 = deconv(input, 3, 128, 2, 'deconv2_4')  
+            deconv2_3 = deconv(deconv2_4, 3, 128, 1, 'deconv2_3')
+            deconv2_2 = deconv(deconv2_3, 3, 128, 1, 'deconv2_2')
             deconv2_1 = deconv(deconv2_2, 3, 64, 2, 'deconv2_1')
-
-            deconv1_2 = deconv(deconv2_1, 3, 64, 1, 'deconv1_2')
+            
+            deconv1_3 = deconv(deconv2_1, 3, 64, 1, 'deconv1_3')
+            deconv1_2 = deconv(deconv1_3, 3, 64, 1, 'deconv1_2')
             deconv1_1 = deconv(deconv1_2, 3, 1, 1, 'deconv1_1', tanh=False)
             return deconv1_1
     
@@ -168,8 +161,7 @@ class ResidualConv(NNBase):
         weights_dict = { key.decode('ascii') : value for key, value in weights_dict.items() }
         with tf.variable_scope('generator/f_img', reuse=True):
             for layer in ['conv1_2',
-                          'conv2_1', 'conv2_2',
-                          'conv3_1', 'conv3_2', 'conv3_3',
+                          'conv2_1', 'conv2_2'
                           ]:
                 with tf.variable_scope(layer):
                     W_value, b_value = weights_dict[layer]

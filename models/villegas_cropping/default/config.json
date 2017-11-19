@@ -1,0 +1,21 @@
+{
+    "dataset" : "squats_L_13_gray",
+
+    "lr_gen" : 1e-4,
+    "l2_coef" : 1e-3,
+    "adv_coef" : 1,
+    "pose_coef" : 1,
+
+    "lr_disc" : 1e-4,
+    "real_coef" : 1,
+    "gen_coef" : 0.5,
+    "mismatch_coef" : 0.5,
+    
+    "batch_size" : 8,
+    "test_size" : 10,
+    
+    "disp_interval" : 10,
+    "summary_interval" : 20,
+    "save_interval" : 5000,
+    "max_steps" : 50000
+}

@@ -1,12 +1,32 @@
 import numpy as np
 import tensorflow as tf
-
+import random 
+from scipy.misc import imresize
 from util import *
 from base_model import NNBase
 
 def load_model(config, sess):
     return ResidualConv(config, sess)
 
+def crop_images(frames1, poses1, frames2, poses2, crop_max):
+    ret_frames1 = np.array(frames1).copy()
+    ret_poses1 = np.array(poses1).copy()
+    ret_frames2 = np.array(frames2).copy()
+    ret_poses2 = np.array(poses2).copy()
+    
+    if crop_max:
+        for i in range(len(frames1)):
+            x_min = random.randint(0,crop_max)
+            x_max = 224 - random.randint(0,crop_max)
+            y_min = random.randint(0,crop_max)
+            y_max = 224 - random.randint(0,crop_max)
+
+            ret_frames1[i][:,:,0] = imresize(ret_frames1[i][x_min:x_max, y_min:y_max,0],(224,224))
+            ret_frames2[i][:,:,0] = imresize(ret_frames2[i][x_min:x_max, y_min:y_max,0],(224,224))
+            for j in range(13):
+                ret_poses1[i][:,:,j] = imresize(ret_poses1[i][x_min:x_max, y_min:y_max,j],(224,224))
+                ret_poses2[i][:,:,j] = imresize(ret_poses2[i][x_min:x_max, y_min:y_max,j],(224,224))
+    return ret_frames1, ret_poses1, ret_frames2, ret_poses2
 
 class ResidualConv(NNBase):
     def __init__(self, config, sess):
@@ -17,10 +37,10 @@ class ResidualConv(NNBase):
         self.p_t = tf.placeholder(tf.float32, [None, 224, 224, 13])
         self.f_t_n = tf.placeholder(tf.float32, [None, 224, 224, 1])
         self.p_t_n = tf.placeholder(tf.float32, [None, 224, 224, 13])
-        self.f_t_norm = (self.f_t/255. - 0.5)*2
-        self.p_t_norm = (self.p_t/255. - 0.5)*2
-        self.f_t_n_norm = (self.f_t_n/255. - 0.5)*2 
-        self.p_t_n_norm = (self.p_t_n/255. - 0.5)*2
+        self.f_t_norm = self.f_t
+        self.p_t_norm = self.p_t
+        self.f_t_n_norm = self.f_t_n
+        self.p_t_n_norm = self.p_t_n
         p_t_flat = tf.reduce_sum(self.p_t_norm, axis=-1, keep_dims=True)
         p_t_n_flat = tf.reduce_sum(self.p_t_n_norm, axis=-1, keep_dims=True)
 
@@ -75,6 +95,7 @@ class ResidualConv(NNBase):
         g_step = tf.train.global_step(sess, self.global_step)
         while g_step < config.max_steps:
             frames1, poses1, frames2, poses2 = get_minibatch(config.batch_size, train_videos, train_poses)
+            frames1, poses1, frames2, poses2 = crop_images(frames1, poses1, frames2, poses2, 40)
             loss_gen, summs_gen = self.fit_batch_gen(frames1, poses1, frames2, poses2)
             loss_disc, summs_disc = self.fit_batch_disc(frames1, poses1, frames2, poses2)
             
@@ -98,6 +119,7 @@ class ResidualConv(NNBase):
     def test(self, test_data):
         test_videos, test_poses = test_data
         frames1, poses1, frames2, poses2 = get_minibatch(self.config.test_size, test_videos, test_poses)
+        frames1, poses1, frames2, poses2 = crop_images(frames1, poses1, frames2, poses2, 0)
         predicted2 = self.predict(frames1, poses1, poses2)
         return zip(frames1, poses1, frames2, poses2, predicted2)
 
@@ -109,10 +131,8 @@ class ResidualConv(NNBase):
 
     def discriminator_network(self, f, p, reuse=False):
         with tf.variable_scope('discriminator', reuse=reuse):
-            f_latent = self.f_img(f)
-            p_latent = self.f_pose(p)
-            concat = tf.concat([f_latent, p_latent], axis=-1)
-            conv6 = conv(concat, 3, 128, 1, name='conv6')
+            concat = tf.concat([f, p], axis = -1)
+            conv6 = self.vgg_shallow_no_fc(concat, small_depth=True)
             flattened = tf.contrib.layers.flatten(conv6)
             fc7 = dropout(fc(flattened, 1024, name='fc7'), 0.5)
             return tf.nn.sigmoid(fc(fc7, 1, name='fc8', relu=False))

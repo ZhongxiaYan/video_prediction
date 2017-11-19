@@ -98,7 +98,7 @@ class ResidualConv(NNBase):
     def test(self, test_data):
         test_videos, test_poses = test_data
         frames1, poses1, frames2, poses2 = get_minibatch(self.config.test_size, test_videos, test_poses)
-        predicted2 = self.predict(frames1, poses1, poses2)
+        predicted2 = (self.predict(frames1, poses1, poses2)/2.+0.5)*255.
         return zip(frames1, poses1, frames2, poses2, predicted2)
 
     def generator_network(self, f_t, p_t, p_t_n):
@@ -109,10 +109,8 @@ class ResidualConv(NNBase):
 
     def discriminator_network(self, f, p, reuse=False):
         with tf.variable_scope('discriminator', reuse=reuse):
-            f_latent = self.f_img(f)
-            p_latent = self.f_pose(p)
-            concat = tf.concat([f_latent, p_latent], axis=-1)
-            conv6 = conv(concat, 3, 128, 1, name='conv6')
+            concat = tf.concat([f, p], axis = -1)
+            conv6 = self.vgg_shallow_no_fc(concat, small_depth=True)
             flattened = tf.contrib.layers.flatten(conv6)
             fc7 = dropout(fc(flattened, 1024, name='fc7'), 0.5)
             return tf.nn.sigmoid(fc(fc7, 1, name='fc8', relu=False))
@@ -160,7 +158,7 @@ class ResidualConv(NNBase):
             deconv2_1 = deconv(deconv2_2, 3, 64, 2, 'deconv2_1')
 
             deconv1_2 = deconv(deconv2_1, 3, 64, 1, 'deconv1_2')
-            deconv1_1 = deconv(deconv1_2, 3, 1, 1, 'deconv1_1', tanh=False)
+            deconv1_1 = deconv(deconv1_2, 3, 1, 1, 'deconv1_1', tanh=True)
             return deconv1_1
     
     def init_pretrained_weights(self, sess):

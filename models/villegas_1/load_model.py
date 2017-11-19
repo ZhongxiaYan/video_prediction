@@ -17,10 +17,10 @@ class ResidualConv(NNBase):
         self.p_t = tf.placeholder(tf.float32, [None, 224, 224, 13])
         self.f_t_n = tf.placeholder(tf.float32, [None, 224, 224, 1])
         self.p_t_n = tf.placeholder(tf.float32, [None, 224, 224, 13])
-        self.f_t_norm = (self.f_t/255. - 0.5)*2
-        self.p_t_norm = (self.p_t/255. - 0.5)*2
-        self.f_t_n_norm = (self.f_t_n/255. - 0.5)*2 
-        self.p_t_n_norm = (self.p_t_n/255. - 0.5)*2
+        self.f_t_norm = self.f_t
+        self.p_t_norm = self.p_t
+        self.f_t_n_norm = self.f_t_n
+        self.p_t_n_norm = self.p_t_n
         p_t_flat = tf.reduce_sum(self.p_t_norm, axis=-1, keep_dims=True)
         p_t_n_flat = tf.reduce_sum(self.p_t_n_norm, axis=-1, keep_dims=True)
 
@@ -109,10 +109,8 @@ class ResidualConv(NNBase):
 
     def discriminator_network(self, f, p, reuse=False):
         with tf.variable_scope('discriminator', reuse=reuse):
-            f_latent = self.f_img(f)
-            p_latent = self.f_pose(p)
-            concat = tf.concat([f_latent, p_latent], axis=-1)
-            conv6 = conv(concat, 3, 128, 1, name='conv6')
+            concat = tf.concat([f, p], axis = -1)
+            conv6 = self.vgg_shallow_no_fc(concat, small_depth=True)
             flattened = tf.contrib.layers.flatten(conv6)
             fc7 = dropout(fc(flattened, 1024, name='fc7'), 0.5)
             return tf.nn.sigmoid(fc(fc7, 1, name='fc8', relu=False))
@@ -164,19 +162,20 @@ class ResidualConv(NNBase):
             return deconv1_1
     
     def init_pretrained_weights(self, sess):
-        weights_dict = np.load('../models/vgg16.npy', encoding='bytes').item()
-        weights_dict = { key.decode('ascii') : value for key, value in weights_dict.items() }
-        with tf.variable_scope('generator/f_img', reuse=True):
-            for layer in ['conv1_2',
-                          'conv2_1', 'conv2_2',
-                          'conv3_1', 'conv3_2', 'conv3_3',
-                          ]:
-                with tf.variable_scope(layer):
-                    W_value, b_value = weights_dict[layer]
-                    W = tf.get_variable('W')
-                    b = tf.get_variable('b')
-                    sess.run(W.assign(W_value))
-                    sess.run(b.assign(b_value))
+        if self.config.pretrained:
+            weights_dict = np.load('../models/vgg16.npy', encoding='bytes').item()
+            weights_dict = { key.decode('ascii') : value for key, value in weights_dict.items() }
+            with tf.variable_scope('generator/f_img', reuse=True):
+                for layer in ['conv1_2',
+                              'conv2_1', 'conv2_2',
+                              'conv3_1', 'conv3_2', 'conv3_3',
+                              ]:
+                    with tf.variable_scope(layer):
+                        W_value, b_value = weights_dict[layer]
+                        W = tf.get_variable('W')
+                        b = tf.get_variable('b')
+                        sess.run(W.assign(W_value))
+                        sess.run(b.assign(b_value))
 
     def fit_batch_gen(self, f_t, p_t, f_t_n, p_t_n):
         _, loss, summs = self.sess.run((self.opt_gen, self.loss_gen, self.summs_gen), feed_dict={ self.p_t : p_t, self.p_t_n : p_t_n, self.f_t : f_t, self.f_t_n : f_t_n })

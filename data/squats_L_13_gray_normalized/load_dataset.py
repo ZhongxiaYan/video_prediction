@@ -25,8 +25,8 @@ def load_dataset(type):
         h, w, n = annotations['dimensions'][0]
         pose = np.zeros((n, 224, 224, 13), dtype=np.uint8)
 
-        xs = annotations['x'] * 224.0 / w
-        ys = annotations['y'] * 224.0 / h
+        xs = annotations['x'] * 224 / w
+        ys = annotations['y'] * 224 / h
 
         for f_i in range(n):
             for p_i in range(13):
@@ -48,8 +48,9 @@ def save_predictions(bundle, output_dir):
 
             if img.shape[2] == 1:
                 img = img.reshape((224, 224))
-            elif img.shape[2] == 13:
-                img = np.sum(img, axis=2)
+            if img.shape[2] == 13:
+                img = np.sum(img, axis = 2)
+            print(img.shape)
             plt.imshow(img, cmap='gray')
             plt.axis('off')
         plt.subplots_adjust(wspace=0, hspace=0)
