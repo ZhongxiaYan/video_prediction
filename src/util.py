@@ -2,6 +2,8 @@ from __future__ import print_function, division
 
 import numpy as np
 import tensorflow as tf
+import scipy
+import scipy.io
 
 import os, subprocess
 
@@ -195,11 +197,32 @@ def generate_heatmap(x, y, w_orig, h_orig, zeros, sigma=5, w_new=224, h_new=224)
     x_start, x_end = max(0, x_int - x_radius), min(w_new, x_int + x_radius + 1)
     y_start, y_end = max(0, y_int - y_radius), min(h_new, y_int + y_radius + 1)
     xx, yy = np.meshgrid(np.arange(x_start, x_end), np.arange(y_start, y_end))
-
     zz = np.exp(-0.5 * ((xx - x) ** 2 / (sigma_x ** 2) + (yy - y) ** 2 / (sigma_y ** 2))) * 255
 
     zeros[y_start : y_end, x_start : x_end] += zz.astype(np.uint8)
 
+def load_annotations():
+    annotations = {}
+    for name, path in list_dir(Data + 'labels/', 'mat', return_name=True):
+        data = scipy.io.loadmat(path)
+        padding = 30
+        h, w, n = data['dimensions'][0]
+        bbox = np.round(data['bbox']).astype(int) + np.array([[-padding, -padding, padding, padding]])
+        bbox = np.maximum(bbox, 0)
+        bbox[:, 2] = np.minimum(bbox[:, 2], w)
+        bbox[:, 3] = np.minimum(bbox[:, 3], h)
+        annotations[name] = {
+            'action' : data['action'][0].encode('ascii'),
+            'bbox' : bbox,
+            'coords' : np.concatenate((np.expand_dims(data['x'], 2), np.expand_dims(data['y'], 2)), axis=2),
+            'dimensions' : (h, w),
+            'nframes' : n,
+            'pose' : data['pose'][0].encode('ascii'),
+            'train' : data['train'][0, 0] == 1,
+            'visibility' : data['visibility'],
+        }
+    return annotations
+    
 def list_dir(dir, ext, return_name=False):
     ext = '.' + ext.lower()
     if return_name:

@@ -19,8 +19,7 @@ flags.DEFINE_string('config', 'default', 'Config for the model')
 
 # optional arguments
 flags.DEFINE_boolean('train', True, 'True for training, False for testing phase. Default [True]')
-flags.DEFINE_string('test_set', 'train', 'Dataset used for testing. Default: ["train"]')
-flags.DEFINE_string('gpu', '3', 'GPU number. Default [0]')
+flags.DEFINE_string('gpu', '0', 'GPU number. Default [0]')
 flags.DEFINE_string('overrides', '', 'Override for parameters in the config file. Specify like "--overrides lr=0.5,l2_loss=0.1". Also need to specify new_config')
 flags.DEFINE_string('new_config', None, 'New config directory to make to store new json with overrides')
 flags.DEFINE_string('save_root', '/media/deoraid03/jeff/video_prediction/', 'Checkpoints will be saved in subdirectories of this root. Symlinks will point to train subdirectories. Default: ["/media/deoraid03/jeff/video_prediction/"]')
@@ -61,14 +60,16 @@ def main(argv):
     # check for existing checkpoints
     train_dir = os.path.join(config_dir, 'train')
     if FLAGS.save_root:
-        save_train_dir = os.path.join(FLAGS.save_root, 'models', FLAGS.model, FLAGS.config, 'train', FLAGS.model_name)
-        make_dir(save_train_dir)
-        
-        if not os.path.exists(train_dir):
-            os.symlink(save_train_dir, train_dir)
-            print('Creating symlink %s->%s' % (train_dir, save_train_dir))
-        elif not os.path.islink(train_dir):
-            raise RuntimeError('%s exists but is not a link. Cannot create new link to %s' % (train_dir, save_train_dir))
+        for dname in ['train', 'val', 'test']:
+            orig_dir = os.path.join(config_dir, dname)
+            save_dir = os.path.join(FLAGS.save_root, 'models', FLAGS.model, FLAGS.config, dname, FLAGS.model_name)
+            make_dir(save_dir)
+
+            if not os.path.exists(orig_dir):
+                os.symlink(save_dir, orig_dir)
+                print('Creating symlink %s -> %s' % (orig_dir, save_dir))
+            elif not os.path.islink(orig_dir):
+                raise RuntimeError('%s exists but is not a link. Cannot create new link to %s' % (orig_dir, save_dir))
         
     ckpt = tf.train.get_checkpoint_state(train_dir)
     if ckpt:
@@ -78,24 +79,22 @@ def main(argv):
 
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
     
-    # load model with the given configurations
-    from load_model import load_model
-    model = load_model(config, sess)
-
     # dataset specific loading
     sys.path.append(os.path.join(Data, config.dataset))
-    from load_dataset import load_dataset, save_predictions
+    from load_dataset import load_dataset
+    dataset = load_dataset(config)
     
+    # load model with the given configurations
+    from load_model import load_model
+    model = load_model(config, sess, dataset)
+
     # create saver and load in data 
     if FLAGS.train:
         print('Training')
         saver = tf.train.Saver(model.get_train_variables(), max_to_keep=5)
-        train_data = load_dataset('train') # tuple of (videos, poses)
-        val_data = load_dataset('val')
     else:
         print('Testing')
         saver = tf.train.Saver(model.get_test_variables())
-        test_data = load_dataset('test')
 
     # initialize model
     if ckpt:
@@ -104,20 +103,21 @@ def main(argv):
         sess.run(tf.global_variables_initializer())
         model.init_pretrained_weights(sess)
 
+    train_output_dir = os.path.join(config_dir, 'train', 'output')
+    val_output_dir = os.path.join(config_dir, 'val', 'output')
+    test_output_dir = os.path.join(config_dir, 'test', 'output')
     if FLAGS.train:
         # train model
         summary_writer = tf.summary.FileWriter(train_dir)
         checkpoint_path = os.path.join(train_dir, 'model.ckpt')
-        success = model.train(saver, summary_writer, train_data, val_data, checkpoint_path)
+        success = model.train(saver, summary_writer, checkpoint_path, train_output_dir, val_output_dir)
         if not success:
+            print('Error... Exiting script')
             exit()
-        test_data = load_dataset(FLAGS.test_set)
         print('Testing')
 
     # test model
-    test_output_dir = os.path.join(config_dir, FLAGS.test_set, 'outputs')
-    test_predictions = model.test(test_data)
-    save_predictions(test_predictions, test_output_dir)
+    test_predictions = model.test(train_output_dir, test_output_dir)
 
 if __name__ == '__main__':
     tf.app.run()
