@@ -21,7 +21,7 @@ class Network(NNBase):
         self.p_t_n = tf.placeholder(tf.float32, [None, 224, 224, config.L])
         self.f_t_norm = (self.f_t / 255. - 0.5) * 2
         self.p_t_norm = (self.p_t / 255. - 0.5) * 2
-        self.f_t_n_norm = (self.f_t_n / 255. - 0.5) * 2 
+        self.f_t_n_norm = (self.f_t_n / 255. - 0.5) * 2
         self.p_t_n_norm = (self.p_t_n / 255. - 0.5) * 2
 
         # generator output
@@ -94,7 +94,7 @@ class Network(NNBase):
                 for output_base, test in zip([train_output_dir, val_output_dir], [False, True]):
                     output_dir = output_base + '-' + str(g_step) + '/'
                     for action, vnames, (frames1, poses1, frames2, poses2) in dataset.get_val_batch(test=test):
-                        predicted = self.predict(frames1, poses1, poses2)
+                        predicted = np.round(self.predict(frames1, poses1, poses2)).astype(np.uint8)
                         action_dir = output_dir + action + '/'
                         make_dir(action_dir)
                         for args in zip(vnames, frames1, poses1, frames2, poses2, predicted):
