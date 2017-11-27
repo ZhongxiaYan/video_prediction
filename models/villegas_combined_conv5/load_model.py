@@ -148,7 +148,7 @@ class Network(NNBase):
             width = self.config.width
         else:    
             width = 1
-        depths = [int(64*width), int(128*width), int(256*width)]
+        depths = [int(64*width), int(128*width), int(256*width), 512, 512]
         prev = input
         for i, depth in enumerate(depths):
             layer_num = i + 1
@@ -156,7 +156,7 @@ class Network(NNBase):
             convi_1 = conv_(prev, depth, name)
             name = 'conv%s_2' % layer_num
             convi_2 = conv_(convi_1, depth, name)
-            if layer_num == 3:
+            if layer_num == 3 or layer_num == 4 or layer_num == 5:
                 name = 'conv%s_3' % layer_num
                 convi_3 = conv_(convi_2, depth, name)
                 prev = pool_(convi_3)
@@ -171,8 +171,16 @@ class Network(NNBase):
         else:    
             width = 1
         with tf.variable_scope('f_dec'):
-            deconv3_4 = deconv(input, 3, int(256*width), 2, 'deconv3_4')            
-            deconv3_3 = deconv(deconv3_4, 3, int(256*width), 1, 'deconv3_3')
+            deconv5_4 = deconv(input, 3, int(512*width), 2, 'deconv5_4')            
+            deconv5_3 = deconv(deconv5_4, 3, int(512*width), 1, 'deconv5_3')
+            deconv5_2 = deconv(deconv5_3, 3, int(512*width), 1, 'deconv5_2')
+            deconv5_1 = deconv(deconv5_2, 3, int(512*width), 2, 'deconv5_1')
+                      
+            deconv4_3 = deconv(deconv5_1, 3, int(512*width), 1, 'deconv4_3')
+            deconv4_2 = deconv(deconv4_3, 3, int(512*width), 1, 'deconv4_2')
+            deconv4_1 = deconv(deconv4_2, 3, int(256*width), 2, 'deconv4_1')
+                      
+            deconv3_3 = deconv(deconv4_1, 3, int(256*width), 1, 'deconv3_3')
             deconv3_2 = deconv(deconv3_3, 3, int(256*width), 1, 'deconv3_2')
             deconv3_1 = deconv(deconv3_2, 3, int(128*width), 2, 'deconv3_1')
             

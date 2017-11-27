@@ -119,8 +119,7 @@ class Network(NNBase):
 
     def generator_network(self, f_t, p_t, p_t_n):
         with tf.variable_scope('generator'):
-            p_t_n_latent = self.f_pose(p_t_n)
-            latent = self.f_img(f_t) + p_t_n_latent - self.f_pose(p_t, reuse=True)
+            latent = self.f_img(tf.concat([f_t, p_t, p_t_n], -1))
             return self.f_dec(latent)
 
     def discriminator_network(self, f, p, reuse=False):

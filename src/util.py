@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import numpy as np
+
 import tensorflow as tf
 import scipy
 import scipy.io
@@ -74,6 +75,21 @@ def dropout(x, keep_prob):
 
 def l2_loss(x, y):
     return tf.reduce_mean(tf.squared_difference(x, y))
+
+def maxout(inputs, num_units, axis=None):
+    shape = inputs.get_shape().as_list()
+    if shape[0] is None:
+        shape[0] = -1
+    if axis is None:  # Assume that channel is the last dimension
+        axis = -1
+    num_channels = shape[axis]
+    if num_channels % num_units:
+        raise ValueError('number of features({}) is not '
+                         'a multiple of num_units({})'.format(num_channels, num_units))
+    shape[axis] = num_units
+    shape += [num_channels // num_units]
+    outputs = tf.reduce_max(tf.reshape(inputs, shape), -1, keep_dims=False)
+    return outputs
 
 def vgg(input, process_input=True):
     if process_input:
@@ -205,15 +221,24 @@ def load_annotations():
     annotations = {}
     for name, path in list_dir(Data + 'labels/', 'mat', return_name=True):
         data = scipy.io.loadmat(path)
-        padding = 30
         h, w, n = data['dimensions'][0]
-        bbox = np.round(data['bbox']).astype(int) + np.array([[-padding, -padding, padding, padding]])
+        base_bbox = np.round(data['bbox']).astype(int)
+        
+        # generates bbox per frame
+        padding = 30
+        bbox = base_bbox + np.array([[-padding, -padding, padding, padding]])
         bbox = np.maximum(bbox, 0)
-        bbox[:, 2] = np.minimum(bbox[:, 2], w)
-        bbox[:, 3] = np.minimum(bbox[:, 3], h)
+        bbox[:, 2:] = np.minimum(bbox[:, 2:], np.array([[w, h]]))
+        
+        # generates same bbox for all frames
+        same_bbox = np.concatenate((np.min(base_bbox[:, :2], axis=0), np.max(base_bbox[:, 2:], axis=0)))
+        same_bbox = np.maximum(same_bbox, 0)
+        same_bbox[2:] = np.minimum(same_bbox[2:], np.array([w, h]))
+        
         annotations[name] = {
             'action' : data['action'][0].encode('ascii'),
             'bbox' : bbox,
+            'same_bbox' : same_bbox,
             'coords' : np.concatenate((np.expand_dims(data['x'], 2), np.expand_dims(data['y'], 2)), axis=2),
             'dimensions' : (h, w),
             'nframes' : n,

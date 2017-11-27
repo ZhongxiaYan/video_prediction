@@ -171,13 +171,13 @@ class Network(NNBase):
         else:    
             width = 1
         with tf.variable_scope('f_dec'):
-            deconv3_4 = deconv(input, 3, int(256*width), 2, 'deconv3_4')            
+            deconv3_4 = deconv(tf.image.resize_images(input,[56,56],tf.image.ResizeMethod.NEAREST_NEIGHBOR), 3, int(256*width), 1, 'deconv3_4')            
             deconv3_3 = deconv(deconv3_4, 3, int(256*width), 1, 'deconv3_3')
             deconv3_2 = deconv(deconv3_3, 3, int(256*width), 1, 'deconv3_2')
-            deconv3_1 = deconv(deconv3_2, 3, int(128*width), 2, 'deconv3_1')
+            deconv3_1 = deconv(tf.image.resize_images(deconv3_2,[112,112],tf.image.ResizeMethod.NEAREST_NEIGHBOR), 3, int(128*width), 1, 'deconv3_1')
             
             deconv2_2 = deconv(deconv3_1, 3, int(128*width), 1, 'deconv2_2')
-            deconv2_1 = deconv(deconv2_2, 3, int(64*width), 2, 'deconv2_1')
+            deconv2_1 = deconv(tf.image.resize_images(deconv2_2,[224,224],tf.image.ResizeMethod.NEAREST_NEIGHBOR), 3, int(64*width), 1, 'deconv2_1')
 
             deconv1_2 = deconv(deconv2_1, 3, int(64*width), 1, 'deconv1_2')
             deconv1_1 = deconv(deconv1_2, 3, self.config.input_depth, 1, 'deconv1_1', tanh=True)

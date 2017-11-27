@@ -142,6 +142,7 @@ class Network(NNBase):
     def vgg_pool3(self, input):
         scope = tf.get_variable_scope().name
         pool_ = lambda x: max_pool(x, 2, 2)
+        maxout_ = lambda x: maxout(x, 64)
         conv_ = lambda x, output_depth, name: conv(x, 3, output_depth, 1, name=name)
         
         if 'width' in self.config:
@@ -160,6 +161,7 @@ class Network(NNBase):
                 name = 'conv%s_3' % layer_num
                 convi_3 = conv_(convi_2, depth, name)
                 prev = pool_(convi_3)
+                prev = maxout_(prev)
             else:    
                 prev = pool_(convi_2)
         return prev
@@ -171,15 +173,15 @@ class Network(NNBase):
         else:    
             width = 1
         with tf.variable_scope('f_dec'):
-            deconv3_4 = deconv(input, 3, int(256*width), 2, 'deconv3_4')            
-            deconv3_3 = deconv(deconv3_4, 3, int(256*width), 1, 'deconv3_3')
-            deconv3_2 = deconv(deconv3_3, 3, int(256*width), 1, 'deconv3_2')
-            deconv3_1 = deconv(deconv3_2, 3, int(128*width), 2, 'deconv3_1')
+            deconv3_4 = deconv(input, 3, int(64*width), 2, 'deconv3_4')            
+            deconv3_3 = deconv(deconv3_4, 3, int(64*width), 1, 'deconv3_3')
+            deconv3_2 = deconv(deconv3_3, 3, int(64*width), 1, 'deconv3_2')
+            deconv3_1 = deconv(deconv3_2, 3, int(32*width), 2, 'deconv3_1')
             
-            deconv2_2 = deconv(deconv3_1, 3, int(128*width), 1, 'deconv2_2')
-            deconv2_1 = deconv(deconv2_2, 3, int(64*width), 2, 'deconv2_1')
+            deconv2_2 = deconv(deconv3_1, 3, int(32*width), 1, 'deconv2_2')
+            deconv2_1 = deconv(deconv2_2, 3, int(16*width), 2, 'deconv2_1')
 
-            deconv1_2 = deconv(deconv2_1, 3, int(64*width), 1, 'deconv1_2')
+            deconv1_2 = deconv(deconv2_1, 3, int(16*width), 1, 'deconv1_2')
             deconv1_1 = deconv(deconv1_2, 3, self.config.input_depth, 1, 'deconv1_1', tanh=True)
             return deconv1_1
     

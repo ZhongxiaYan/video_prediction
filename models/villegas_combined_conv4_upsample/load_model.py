@@ -60,9 +60,12 @@ class Network(NNBase):
 
         variables_gen = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='generator')
         self.opt_gen = tf.train.AdamOptimizer(learning_rate=config.lr_gen).minimize(self.loss_gen, var_list=variables_gen, global_step=self.global_step)
+        
+        self.learning_rate_decay = tf.train.exponential_decay(config.lr_disc, self.global_step,
+                                                              500, 0.94, staircase=True)
 
         variables_disc = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='discriminator')
-        self.opt_disc = tf.train.GradientDescentOptimizer(learning_rate=config.lr_disc).minimize(self.loss_disc, var_list=variables_disc)
+        self.opt_disc = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate_decay).minimize(self.loss_disc, var_list=variables_disc)
 
     def train(self, saver, summary_writer, checkpoint_path, train_output_dir, val_output_dir):
         sess = self.sess
@@ -148,7 +151,7 @@ class Network(NNBase):
             width = self.config.width
         else:    
             width = 1
-        depths = [int(64*width), int(128*width), int(256*width)]
+        depths = [int(64*width), int(128*width), int(256*width), 512]
         prev = input
         for i, depth in enumerate(depths):
             layer_num = i + 1
@@ -156,7 +159,7 @@ class Network(NNBase):
             convi_1 = conv_(prev, depth, name)
             name = 'conv%s_2' % layer_num
             convi_2 = conv_(convi_1, depth, name)
-            if layer_num == 3:
+            if layer_num == 3 or layer_num == 4:
                 name = 'conv%s_3' % layer_num
                 convi_3 = conv_(convi_2, depth, name)
                 prev = pool_(convi_3)
@@ -171,13 +174,17 @@ class Network(NNBase):
         else:    
             width = 1
         with tf.variable_scope('f_dec'):
-            deconv3_4 = deconv(input, 3, int(256*width), 2, 'deconv3_4')            
-            deconv3_3 = deconv(deconv3_4, 3, int(256*width), 1, 'deconv3_3')
+            deconv4_4 = deconv(tf.image.resize_images(input,[28,28],tf.image.ResizeMethod.NEAREST_NEIGHBOR), 3, int(512*width), 1, 'deconv4_4')            
+            deconv4_3 = deconv(deconv4_4, 3, int(512*width), 1, 'deconv4_3')
+            deconv4_2 = deconv(deconv4_3, 3, int(512*width), 1, 'deconv4_2')
+            deconv4_1 = deconv(tf.image.resize_images(deconv4_2,[56,56],tf.image.ResizeMethod.NEAREST_NEIGHBOR), 3, int(256*width), 1, 'deconv4_1')
+                      
+            deconv3_3 = deconv(deconv4_1, 3, int(256*width), 1, 'deconv3_3')
             deconv3_2 = deconv(deconv3_3, 3, int(256*width), 1, 'deconv3_2')
-            deconv3_1 = deconv(deconv3_2, 3, int(128*width), 2, 'deconv3_1')
+            deconv3_1 = deconv(tf.image.resize_images(deconv3_2,[112,112],tf.image.ResizeMethod.NEAREST_NEIGHBOR), 3, int(128*width), 1, 'deconv3_1')
             
             deconv2_2 = deconv(deconv3_1, 3, int(128*width), 1, 'deconv2_2')
-            deconv2_1 = deconv(deconv2_2, 3, int(64*width), 2, 'deconv2_1')
+            deconv2_1 = deconv(tf.image.resize_images(deconv2_2,[224,224],tf.image.ResizeMethod.NEAREST_NEIGHBOR), 3, int(64*width), 1, 'deconv2_1')
 
             deconv1_2 = deconv(deconv2_1, 3, int(64*width), 1, 'deconv1_2')
             deconv1_1 = deconv(deconv1_2, 3, self.config.input_depth, 1, 'deconv1_1', tanh=True)

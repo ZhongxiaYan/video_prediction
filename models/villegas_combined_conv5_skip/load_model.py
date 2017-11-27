@@ -119,14 +119,15 @@ class Network(NNBase):
 
     def generator_network(self, f_t, p_t, p_t_n):
         with tf.variable_scope('generator'):
-            p_t_n_latent = self.f_pose(p_t_n)
-            latent = self.f_img(f_t) + p_t_n_latent - self.f_pose(p_t, reuse=True)
-            return self.f_dec(latent)
+            p_t_n_latent = self.f_pose(p_t_n)[1]
+            conv3, output = self.f_img(f_t)
+            latent = output + p_t_n_latent - self.f_pose(p_t, reuse=True)[1]
+            return self.f_dec(latent, conv3)
 
     def discriminator_network(self, f, p, reuse=False):
         with tf.variable_scope('discriminator', reuse=reuse):
             concat = tf.concat([f, p], axis=-1)
-            conv6 = self.vgg_pool3(concat)
+            _,conv6 = self.vgg_pool3(concat)
             flattened = tf.contrib.layers.flatten(conv6)
             fc7 = dropout(fc(flattened, 1024, name='fc7'), 0.5)
             return tf.nn.sigmoid(fc(fc7, 1, name='fc8', relu=False))
@@ -148,31 +149,42 @@ class Network(NNBase):
             width = self.config.width
         else:    
             width = 1
-        depths = [int(64*width), int(128*width), int(256*width)]
+        depths = [int(64*width), int(128*width), int(256*width), 512, 512]
         prev = input
+        conv3_output = None
         for i, depth in enumerate(depths):
             layer_num = i + 1
             name = 'conv%s_1' % layer_num
             convi_1 = conv_(prev, depth, name)
             name = 'conv%s_2' % layer_num
             convi_2 = conv_(convi_1, depth, name)
-            if layer_num == 3:
+            if layer_num == 3 or layer_num == 4 or layer_num == 5:
                 name = 'conv%s_3' % layer_num
                 convi_3 = conv_(convi_2, depth, name)
+                if layer_num == 3:
+                    conv3_output = convi_3
                 prev = pool_(convi_3)
             else:    
                 prev = pool_(convi_2)
-        return prev
+        return conv3_output, prev
     
-    def f_dec(self, input):
+    def f_dec(self, input, conv3):
         l_outs = self.layer_outputs
         if 'width' in self.config:
             width = self.config.width
         else:    
             width = 1
         with tf.variable_scope('f_dec'):
-            deconv3_4 = deconv(input, 3, int(256*width), 2, 'deconv3_4')            
-            deconv3_3 = deconv(deconv3_4, 3, int(256*width), 1, 'deconv3_3')
+            deconv5_4 = deconv(input, 3, int(512*width), 2, 'deconv5_4')            
+            deconv5_3 = deconv(deconv5_4, 3, int(512*width), 1, 'deconv5_3')
+            deconv5_2 = deconv(deconv5_3, 3, int(512*width), 1, 'deconv5_2')
+            deconv5_1 = deconv(deconv5_2, 3, int(512*width), 2, 'deconv5_1')
+                      
+            deconv4_3 = deconv(deconv5_1, 3, int(512*width), 1, 'deconv4_3')
+            deconv4_2 = deconv(deconv4_3, 3, int(512*width), 1, 'deconv4_2')
+            deconv4_1 = tf.concat([deconv(deconv4_2, 3, int(256*width), 2, 'deconv4_1'), conv3], axis = -1)
+                      
+            deconv3_3 = deconv(deconv4_1, 3, int(256*width), 1, 'deconv3_3')
             deconv3_2 = deconv(deconv3_3, 3, int(256*width), 1, 'deconv3_2')
             deconv3_1 = deconv(deconv3_2, 3, int(128*width), 2, 'deconv3_1')
             

@@ -91,7 +91,7 @@ def main(argv):
     # create saver and load in data 
     if FLAGS.train:
         print('Training')
-        saver = tf.train.Saver(model.get_train_variables(), max_to_keep=5)
+        saver = tf.train.Saver(model.get_train_variables(), max_to_keep=None)
     else:
         print('Testing')
         saver = tf.train.Saver(model.get_test_variables())

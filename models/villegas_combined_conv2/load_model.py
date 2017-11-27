@@ -128,7 +128,7 @@ class Network(NNBase):
             concat = tf.concat([f, p], axis=-1)
             conv6 = self.vgg_pool3(concat)
             flattened = tf.contrib.layers.flatten(conv6)
-            fc7 = dropout(fc(flattened, 1024, name='fc7'), 0.5)
+            fc7 = dropout(fc(flattened, 512, name='fc7'), 0.5)
             return tf.nn.sigmoid(fc(fc7, 1, name='fc8', relu=False))
     
     def f_pose(self, input, reuse=False):
@@ -148,7 +148,7 @@ class Network(NNBase):
             width = self.config.width
         else:    
             width = 1
-        depths = [int(64*width), int(128*width), int(256*width)]
+        depths = [64, 128]
         prev = input
         for i, depth in enumerate(depths):
             layer_num = i + 1
@@ -156,12 +156,9 @@ class Network(NNBase):
             convi_1 = conv_(prev, depth, name)
             name = 'conv%s_2' % layer_num
             convi_2 = conv_(convi_1, depth, name)
-            if layer_num == 3:
-                name = 'conv%s_3' % layer_num
-                convi_3 = conv_(convi_2, depth, name)
-                prev = pool_(convi_3)
-            else:    
-                prev = pool_(convi_2)
+            name = 'conv%s_3' % layer_num
+            convi_3 = conv_(convi_2, depth, name)
+            prev = pool_(convi_3)
         return prev
     
     def f_dec(self, input):
@@ -170,16 +167,15 @@ class Network(NNBase):
             width = self.config.width
         else:    
             width = 1
-        with tf.variable_scope('f_dec'):
-            deconv3_4 = deconv(input, 3, int(256*width), 2, 'deconv3_4')            
-            deconv3_3 = deconv(deconv3_4, 3, int(256*width), 1, 'deconv3_3')
-            deconv3_2 = deconv(deconv3_3, 3, int(256*width), 1, 'deconv3_2')
-            deconv3_1 = deconv(deconv3_2, 3, int(128*width), 2, 'deconv3_1')
+        with tf.variable_scope('f_dec'):          
+            deconv2_3 = deconv(input, 3, 128, 2, 'deconv2_3')
+            deconv2_2 = deconv(deconv2_3, 3, 128, 1, 'deconv2_2')
+            deconv2_1 = deconv(deconv2_2, 3, 128, 1, 'deconv2_1')
             
-            deconv2_2 = deconv(deconv3_1, 3, int(128*width), 1, 'deconv2_2')
-            deconv2_1 = deconv(deconv2_2, 3, int(64*width), 2, 'deconv2_1')
-
-            deconv1_2 = deconv(deconv2_1, 3, int(64*width), 1, 'deconv1_2')
+            deconv1_4 = deconv(deconv2_1, 3, 64, 2, 'deconv1_4')
+            deconv1_3 = deconv(deconv1_4, 3, 64, 1, 'deconv1_3')
+            deconv1_2 = deconv(deconv1_3, 3, 64, 1, 'deconv1_2')
+            
             deconv1_1 = deconv(deconv1_2, 3, self.config.input_depth, 1, 'deconv1_1', tanh=True)
             return deconv1_1
     
