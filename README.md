@@ -1,5 +1,7 @@
 # Hierarchical Video Prediction
 
+Zhongxia Yan, Jeffrey Zhang
+
 Code reimplmenetation of Learning to Generate Long-term Future via Hierarchical Prediction! This github repo contains working code for Villegas et al's paper on Learning to Generate Long-term Future via Hierarchical Prediction. This README displays results produced from our models, our own experimentation with the method, and how to run the code.
 
 ## Method
