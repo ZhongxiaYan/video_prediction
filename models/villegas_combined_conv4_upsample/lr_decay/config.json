@@ -20,5 +20,8 @@
     "disp_interval" : 10,
     "summary_interval" : 10,
     "save_interval" : 10000,
-    "max_steps" : 200000
+    "max_steps" : 200000,
+        
+    "lr_step" : 500,
+    "lr_decay" : 0.94
 }

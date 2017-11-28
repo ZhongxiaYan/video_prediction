@@ -60,12 +60,14 @@ class Network(NNBase):
 
         variables_gen = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='generator')
         self.opt_gen = tf.train.AdamOptimizer(learning_rate=config.lr_gen).minimize(self.loss_gen, var_list=variables_gen, global_step=self.global_step)
-        
-        self.learning_rate_decay = tf.train.exponential_decay(config.lr_disc, self.global_step,
-                                                              500, 0.94, staircase=True)
 
         variables_disc = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='discriminator')
-        self.opt_disc = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate_decay).minimize(self.loss_disc, var_list=variables_disc)
+        if 'adam' in self.config:
+            self.opt_disc = tf.train.AdamOptimizer(learning_rate=config.lr_disc).minimize(self.loss_disc, var_list=variables_disc)
+        else:
+            self.learning_rate_decay = tf.train.exponential_decay(config.lr_disc, self.global_step,
+                                                              config.lr_step, config.lr_decay, staircase=True)
+            self.opt_disc = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate_decay).minimize(self.loss_disc, var_list=variables_disc)
 
     def train(self, saver, summary_writer, checkpoint_path, train_output_dir, val_output_dir):
         sess = self.sess
