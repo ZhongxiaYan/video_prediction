@@ -1,37 +1,55 @@
-## Welcome to GitHub Pages
+# Hierarchical Video Prediction
 
-You can use the [editor on GitHub](https://github.com/ZhongxiaYan/video_prediction/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+Zhongxia Yan, Jeffrey Zhang
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Code reimplmenetation of Learning to Generate Long-term Future via Hierarchical Prediction! This github repo contains working code for Villegas et al's paper on Learning to Generate Long-term Future via Hierarchical Prediction. This README displays results produced from our models, our own experimentation with the method, and how to run the code.
 
-### Markdown
+## Method
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Insert diagrams and images from our write up.
+Include hyper parameters we used.
+Original details can be found at https://arxiv.org/abs/1704.05831.
 
+## Results
+Results for each action on Penn Action Dataset 
+
+|   Baseball Pitch   |  Baseball Swing  | Bench Press | Bowl |
+| ------------- |:-------------:|:-----:|:-----:|
+| ![alt text][pitch]  | ![alt text_2][swing] | ![alt text_3][bench]| ![alt text_4][bowl] |
+
+|   Clean and Jerk  |  Golf Swing  | Jump Rope | Jumping Jacks |
+| ------------- |:-------------:|:-----:|:-----:|
+| ![alt text][clean]  | ![alt text_2][golf] | ![alt text_3][jump]| ![alt text_4][jacks] |
+
+|   Pullup  |  Pushup  | Situp | Squat |
+| ------------- |:-------------:|:-----:|:-----:|
+| ![alt text][pullup]  | ![alt text_2][pushup] | ![alt text_3][situp]| ![alt text_4][squat] |
+
+
+[pitch]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pitch.gif 
+[swing]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/swing.gif 
+[bench]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/bench.gif 
+[bowl]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/bowl.gif 
+[clean]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/clean.gif 
+[golf]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/golf.gif 
+[jump]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/jump.gif 
+[jacks]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/jacks.gif 
+[pullup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pullup.gif 
+[pushup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pushup.gif 
+[situp]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/situp.gif 
+[squat]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/squat.gif 
+
+## Experimentation
+### Truncated VGG convolution layers
+
+### Full Image vs Crop
+
+### Conv5 vs Conv5 + Residual 
+
+### Checkboarding and Deconvolution Artifacts
+
+## How to Run
 ```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+python run2.py --model villegas_combined --config rgb_L_13_cropped_consistent 
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/ZhongxiaYan/video_prediction/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
