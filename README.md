@@ -26,18 +26,18 @@ Results for each action on Penn Action Dataset
 | ![alt text][pullup]  | ![alt text_2][pushup] | ![alt text_3][situp]| ![alt text_4][squat] |
 
 
-[pitch]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pitch.gif 
-[swing]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/swing.gif 
-[bench]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/bench.gif 
-[bowl]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/bowl.gif 
-[clean]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/clean.gif 
-[golf]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/golf.gif 
-[jump]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/jump.gif 
-[jacks]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/jacks.gif 
-[pullup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pullup.gif 
-[pushup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pushup.gif 
-[situp]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/situp.gif 
-[squat]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/squat.gif 
+[pitch]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/pitch.gif 
+[swing]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/swing.gif 
+[bench]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/bench.gif 
+[bowl]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/bowl.gif 
+[clean]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/clean.gif 
+[golf]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/golf.gif 
+[jump]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/jump.gif 
+[jacks]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/jacks.gif 
+[pullup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/pullup.gif 
+[pushup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/pushup.gif 
+[situp]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/situp.gif 
+[squat]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/squat.gif 
 
 ## Experimentation
 ### Truncated VGG convolution layers
