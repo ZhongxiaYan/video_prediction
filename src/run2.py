@@ -12,11 +12,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 flags = tf.app.flags
 
-# required arguments
-flags.DEFINE_string('model', None, 'The name of the model. model_dir should contain configs/ and checkpoint/ directories')
-flags.DEFINE_string('model_name', '', 'The name of the specific model to distinguish summary results')
-flags.DEFINE_string('config', 'default', 'Config for the model')
-
 # optional arguments
 flags.DEFINE_boolean('train', True, 'True for training, False for testing phase. Default [True]')
 flags.DEFINE_string('gpu', '0', 'GPU number. Default [0]')
@@ -34,21 +29,24 @@ def apply_overrides(config, override_string):
         config[name] = type(config[name])(val)
         
 def main(argv):
-    if FLAGS.gpu:
-        os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
+    assert len(argv) == 2, 'Only argument must be path to config directory'
+    config_dir = os.path.abspath(argv[1])
+    assert config_dir.startswith(Models), 'Invalid config directory %s' % config_dir
+    model_name, config_name = config_dir[len(Models):].split('/')[:2]
 
-    model_dir = os.path.join(Models, FLAGS.model)
+    os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
+    model_dir = os.path.join(Models, model_name)
     sys.path.append(model_dir)
 
     # load in model specific configurations
-    config_dir = os.path.join(model_dir, FLAGS.config)
+    config_dir = os.path.join(model_dir, config_name)
     config_path = os.path.join(config_dir, 'config.json')
     with open(config_path, 'r+') as f:
         config = edict(json.load(f))
         
     if FLAGS.overrides:
         assert FLAGS.new_config, 'Must set FLAGS.new_config to new config name'
-        FLAGS.config = FLAGS.new_config
+        config_name = FLAGS.new_config
         config_dir = os.path.join(model_dir, FLAGS.new_config)
         config_path = os.path.join(config_dir, 'config.json')
         apply_overrides(config, FLAGS.overrides)
@@ -62,7 +60,7 @@ def main(argv):
     if FLAGS.save_root:
         for dname in ['train', 'val', 'test']:
             orig_dir = os.path.join(config_dir, dname)
-            save_dir = os.path.join(FLAGS.save_root, 'models', FLAGS.model, FLAGS.config, dname, FLAGS.model_name)
+            save_dir = os.path.join(FLAGS.save_root, 'models', model_name, config_name, dname)
             make_dir(save_dir)
 
             if not os.path.exists(orig_dir):
