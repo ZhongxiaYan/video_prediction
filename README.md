@@ -19,17 +19,25 @@ Results for each action on Penn Action Dataset
 
 |   Clean and Jerk  |  Golf Swing  | Jump Rope | Jumping Jacks |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][pitch]  | ![alt text_2][pitch] | ![alt text_3][pitch]| ![alt text_4][pitch] |
+| ![alt text][clean]  | ![alt text_2][golf] | ![alt text_3][jump]| ![alt text_4][jacks] |
 
-|   Baseball Pitch   |  Baseball Swing  | Bench Press | Bowl |
+|   Pullup  |  Pushup  | Situp | Squat |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][pitch]  | ![alt text_2][pitch] | ![alt text_3][pitch]| ![alt text_4][pitch] |
+| ![alt text][pullup]  | ![alt text_2][pushup] | ![alt text_3][situp]| ![alt text_4][squat] |
 
 
-[pitch]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/0050.gif 
-[swing]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/0280.gif 
-[bench]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/0441.gif 
-[bowl]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/0544.gif 
+[pitch]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pitch.gif 
+[swing]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/swing.gif 
+[bench]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/bench.gif 
+[bowl]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/bowl.gif 
+[clean]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/clean.gif 
+[golf]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/golf.gif 
+[jump]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/jump.gif 
+[jacks]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/jacks.gif 
+[pullup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pullup.gif 
+[pushup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/pushup.gif 
+[situp]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/situp.gif 
+[squat]: https://github.com/ZhongxiaYan/video_prediction/blob/master/src/squat.gif 
 
 ## Experimentation
 ### Truncated VGG convolution layers
