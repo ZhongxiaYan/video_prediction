@@ -1,0 +1,21 @@
+{
+    "gray": false, 
+    "gen_coef": 0.5, 
+    "disp_interval": 10, 
+    "save_interval": 10000, 
+    "lr_disc": 5e-05, 
+    "cropped": false, 
+    "dataset": "Penn_Action", 
+    "batch_size": 4, 
+    "summary_interval": 10, 
+    "N_test_per_class": 3, 
+    "l2_coef": 100, 
+    "lr_gen": 0.001, 
+    "adv_coef": 1, 
+    "mismatch_coef": 0.5, 
+    "actions": "all", 
+    "max_steps": 200000, 
+    "real_coef": 1, 
+    "L": 13, 
+    "adam": true
+}

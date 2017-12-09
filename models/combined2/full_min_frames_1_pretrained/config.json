@@ -1,0 +1,28 @@
+{
+    "dataset": "Penn_Action", 
+    "gray": false, 
+    "L": 13, 
+    "cropped": false, 
+    "actions": "all",
+    "N_test_per_class": 3,
+    "min_frame_dist" : 20,
+        
+    "lr_gen": 1e-4,
+    "l2_coef": 1e-2,
+    "latent_coef" : 0,
+    "adv_coef": 1,
+        
+    "lr_disc": 5e-5, 
+    "real_coef": 1,
+    "gen_coef": 0.5, 
+    "mismatch_coef": 0.5, 
+
+    "fix_weight_layers" : 1,
+        
+    "batch_size": 4,
+        
+    "disp_interval": 10, 
+    "summary_interval": 10, 
+    "save_interval": 10000, 
+    "max_steps": 200000
+}

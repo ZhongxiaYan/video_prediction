@@ -13,6 +13,7 @@ Root = os.path.dirname(Src) + '/' # root directory
 Src = Src + '/'
 Data = os.path.join(Root, 'data') + '/'
 Models = os.path.join(Root, 'models') + '/'
+Results = os.path.join(Root, 'results') + '/'
 
 def lrelu(x, alpha):
     return tf.maximum(x, alpha*x)
@@ -177,17 +178,44 @@ def vgg_deconv(input):
     return deconv1_1
 
 def alexnet(input):
-    conv1 = conv(input, 11, 96, 4, padding='VALID', name='conv1', trainable=False)
+    # input: 227 x 227 x 3 rgb image. 0 to 255
+    input_norm = input - tf.reduce_mean(input)
+    bgr = tf.reverse(input_norm, axis=3)
+    
+    def conv(x, filter_size, num_filters, stride, name, groups=1, padding='SAME', relu=True):
+        input_channels = int(x.get_shape()[-1])
+
+        convolve = lambda x, W: tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding=padding)
+        with tf.variable_scope(name):
+            weights = tf.get_variable('W',
+                                      shape=[filter_size, filter_size, input_channels // groups, num_filters],
+                                      trainable=False)
+            biases = tf.get_variable('b', shape=[num_filters], trainable=False)
+
+            if groups == 1:
+                output = convolve(x, weights)
+            else:
+                input_groups = tf.split(x, groups, axis=3)
+                weight_groups = tf.split(weights, groups, axis=3)
+                output_groups = [convolve(i, k) for i, k in zip(input_groups, weight_groups)]
+                output = tf.concat(output_groups, axis=3)
+                
+            output = tf.reshape(tf.nn.bias_add(output, biases), output.get_shape().as_list())
+            if relu:
+                return tf.nn.relu(output)
+            return output
+
+    conv1 = conv(bgr, 11, 96, 4, name='conv1', padding='VALID')
     pool1 = max_pool(conv1, 3, 2, padding='VALID', name='pool1')
     norm1 = lrn(pool1, 2, 2e-5, 0.75, name='norm1')
 
-    conv2 = conv(norm1, 5, 256, 1, groups=2, name='conv2', trainable=False)
+    conv2 = conv(norm1, 5, 256, 1, groups=2, name='conv2')
     pool2 = max_pool(conv2, 3, 2, padding='VALID', name='pool2')
     norm2 = lrn(pool2, 2, 2e-5, 0.75, name='norm2')
 
-    conv3 = conv(norm2, 3, 384, 1, name='conv3', trainable=False)
-    conv4 = conv(conv3, 3, 384, 1, groups=2, name='conv4', trainable=False)
-    conv5 = conv(conv4, 3, 256, 1, groups=2, name='conv5', trainable=False)
+    conv3 = conv(norm2, 3, 384, 1, name='conv3')
+    conv4 = conv(conv3, 3, 384, 1, groups=2, name='conv4')
+    conv5 = conv(conv4, 3, 256, 1, groups=2, name='conv5', relu=False)
     return conv5
 
 def get_minibatch(batch_size, videos, poses):
