@@ -10,10 +10,9 @@ Video prediction involves predicting T future frames of a video given k original
 ![alt text](resources/model_overview.png)
 
 ## Dataset
-We train and evaluate our models on the [Penn Action Dataset](http://dreamdragon.github.io/PennAction/). Below are examples of an image and a pose.
+We train and evaluate our models on the [Penn Action Dataset](http://dreamdragon.github.io/PennAction/). Below are examples of an image and a gaussianized pose.
 
-![alt text](resources/penn_action_image_ex.png)
-![alt text](resources/penn_action_heatmap_ex.png)
+<img src="resources/penn_action_image_ex.jpg" width="300"> <img src="resources/penn_action_heatmap_ex.png" width="300">
 
 ## Method
 ### LSTM
