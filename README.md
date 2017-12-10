@@ -40,15 +40,15 @@ Results for actions on Penn Action Dataset.
 
 |   Baseball Pitch   |  Baseball Swing  | Bench Press | Bowl |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][results/baseball_pitch/true.gif] ![alt text][results/baseball_pitch/adam_feat.gif]   | ![alt text][results/baseball_swing/true.gif] ![alt text][results/baseball_swing/adam_feat.gif]  | ![alt text][results/bench_press/true.gif] ![alt text][results/bench_press/adam_feat.gif] | ![alt text][results/bowl/true.gif] ![alt text][results/bowl/adam_feat.gif]  |
+| ![alt text](results/baseball_pitch/true.gif) ![alt text](results/baseball_pitch/adam_feat.gif)   | ![alt text](results/baseball_swing/true.gif) ![alt text](results/baseball_swing/adam_feat.gif)  | ![alt text](results/bench_press/true.gif) ![alt text](results/bench_press/adam_feat.gif) | ![alt text](results/bowl/true.gif) ![alt text](results/bowl/adam_feat.gif)  |
 
 |   Clean and Jerk  |  Golf Swing  | Jump Rope | Jumping Jacks |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][results/clean_and_jerk/true.gif] ![alt text][results/clean_and_jerk/adam_feat.gif]   | ![alt text][results/golf_swing/true.gif] ![alt text][results/golf_swing/adam_feat.gif]  | ![alt text][results/jump_rope/true.gif] ![alt text][results/jump_rope/adam_feat.gif] | ![alt text][results/jumping_jacks/true.gif] ![alt text][results/jumping_jacks/adam_feat.gif]  |
+| ![alt text](results/clean_and_jerk/true.gif) ![alt text](results/clean_and_jerk/adam_feat.gif)   | ![alt text](results/golf_swing/true.gif) ![alt text](results/golf_swing/adam_feat.gif)  | ![alt text](results/jump_rope/true.gif) ![alt text](results/jump_rope/adam_feat.gif) | ![alt text](results/jumping_jacks/true.gif) ![alt text](results/jumping_jacks/adam_feat.gif)  |
 
 |   Pullup  |  Pushup  | Squat | Tennis Serve |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][results/pullup/true.gif] ![alt text][results/pullup/adam_feat.gif]   | ![alt text][results/pushup/true.gif] ![alt text][results/pushup/adam_feat.gif]  | ![alt text][results/squat/true.gif] ![alt text][results/squat/adam_feat.gif] | ![alt text][results/tennis_serve/true.gif] ![alt text][results/tennis_serve/adam_feat.gif]  |
+| ![alt text](results/pullup/true.gif) ![alt text](results/pullup/adam_feat.gif)   | ![alt text](results/pushup/true.gif) ![alt text](results/pushup/adam_feat.gif)  | ![alt text](results/squat/true.gif) ![alt text](results/squat/adam_feat.gif) | ![alt text](results/tennis_serve/true.gif) ![alt text](results/tennis_serve/adam_feat.gif)  |
 
 ## Experimentation
 ### Truncated VGG convolution layers
