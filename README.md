@@ -36,7 +36,7 @@ Our loss function has three parts.
 ![alt text](resources/analogy_losses.png)
 
 ## Results
-Results for actions on Penn Action Dataset.
+We present the results of our analogy network. For each action, the top gif is the ground truth, while the bottom gif is the output of our analogy network. Note: if the top and bottom gifs are out of sync, refresh the page.
 
 |   Baseball Pitch   |  Baseball Swing  | Bench Press | Bowl |
 | ------------- |:-------------:|:-----:|:-----:|
@@ -50,14 +50,25 @@ Results for actions on Penn Action Dataset.
 | ------------- |:-------------:|:-----:|:-----:|
 | ![alt text](results/pullup/true.gif) ![alt text](results/pullup/adam_feat.gif)   | ![alt text](results/pushup/true.gif) ![alt text](results/pushup/adam_feat.gif)  | ![alt text](results/squat/true.gif) ![alt text](results/squat/adam_feat.gif) | ![alt text](results/tennis_serve/true.gif) ![alt text](results/tennis_serve/adam_feat.gif)  |
 
+### Discussion
+We can see that the outputs of the analogy network captures the semantics of the human figure well. The generation is able to generate a human figure that fits the locations of the joints at time t + n, with an almost perfectly unaltered background. Both the figure and background are not blurry. However, we found that the discriminator is not able to train the generator to perfectly reconstruct facial and other fine details. In addition, the discriminator not able to constrain the the generated figure in time t + n to look the same as the true human figures in time t, i.e. often human figures in time t + n wears different colored clothes. Additionally, instruments and tools used by humans (e.g., barbells, bats, rackets, etc.) had difficulty transferring over into the generated frames. Finally, although the generator is able to erase most of the figure from its location at time t, there is sometimes a shadow of leftover human figure, and interpolation of background at the location of the human at time t sees limited success. In summary, the analogy network captures the semantics of the human figure well, but sometimes fails at generating fine details and non-human areas / objects realistically.
+
 ## Experimentation
+
+The results above are our best and we've experiment with various network architectures and parameters along the way.
+
+### Weak Discriminator
+Initially we trained our discriminator with `GradientDescentOptimizer` and realized that this optimizer was not strong enough (loss was not converging), so we switched to using `AdamOptimizer`. We show the comparison below, along with a L2 only (no discriminator and adversarial loss) baseline implementation. We can see that the weaker discriminator still outputs sharper images than L2 alone.
+
+<p>
+	<img src="results/baseball_pitch/true.gif" width="224"> <img src="results/baseball_pitch/adam_feat.gif" width="224"> <img src="results/baseball_pitch/sgd_conv4.gif" width="224"> <img src="results/baseball_pitch/l2.gif" width="224">
+	<em>Left to right: Ground truth, "strong" discriminator, "weak" discriminator, no discriminator</em>
+</p>
+
 ### Truncated VGG convolution layers
 
 ### Full Image vs Crop
 
-### Conv5 vs Conv5 + Residual 
-
-### Checkboarding and Deconvolution Artifacts
 
 ## How to Run
 ```markdown
