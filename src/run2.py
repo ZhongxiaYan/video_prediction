@@ -18,6 +18,8 @@ flags.DEFINE_string('gpu', '0', 'GPU number. Default [0]')
 flags.DEFINE_string('overrides', '', 'Override for parameters in the config file. Specify like "--overrides lr=0.5,l2_loss=0.1". Also need to specify new_config')
 flags.DEFINE_string('new_config', None, 'New config directory to make to store new json with overrides')
 flags.DEFINE_string('save_root', '/media/deoraid03/jeff/video_prediction/', 'Checkpoints will be saved in subdirectories of this root. Symlinks will point to train subdirectories. Default: ["/media/deoraid03/jeff/video_prediction/"]')
+flags.DEFINE_boolean('debug', False, 'If true, train and validate for 1 iteration.')
+
 FLAGS = flags.FLAGS
 
 def apply_overrides(config, override_string):
@@ -68,7 +70,10 @@ def main(argv):
                 print('Creating symlink %s -> %s' % (orig_dir, save_dir))
             elif not os.path.islink(orig_dir):
                 raise RuntimeError('%s exists but is not a link. Cannot create new link to %s' % (orig_dir, save_dir))
-        
+    
+    if FLAGS.debug:
+        config.disp_interval = config.summary_interval = config.save_interval = config.max_steps = 1
+
     ckpt = tf.train.get_checkpoint_state(train_dir)
     if ckpt:
         print('Latest checkpoint:', ckpt.model_checkpoint_path)

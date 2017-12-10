@@ -46,7 +46,7 @@ class Network(NNBase):
         with tf.variable_scope('generator'):
             # generator losses
             l2_loss_gen = l2_loss(self.f_t_n, self.f_t_n_pred)
-            adv_loss_gen = -tf.reduce_mean(tf.log(tf.maximum(pr_real_gen, 0.01)))
+            adv_loss_gen = -tf.reduce_mean(tf.log(tf.maximum(pr_real_gen, 1e-4)))
             self.loss_gen = config.l2_coef * l2_loss_gen + config.adv_coef * adv_loss_gen
             summ_list = [
                 tf.summary.scalar('l2_loss', l2_loss_gen),
@@ -61,9 +61,9 @@ class Network(NNBase):
 
         with tf.variable_scope('discriminator'):
             # discriminator losses
-            real_loss = -tf.reduce_mean(tf.log(tf.maximum(pr_real_true, 0.01)))
-            gen_loss = -tf.reduce_mean(tf.log(tf.maximum(1 - pr_real_gen, 0.01)))
-            mismatch_loss = -tf.reduce_mean(tf.log(tf.maximum(1 - pr_real_mismatch, 0.01)))
+            real_loss = -tf.reduce_mean(tf.log(tf.maximum(pr_real_true, 1e-4)))
+            gen_loss = -tf.reduce_mean(tf.log(tf.maximum(1 - pr_real_gen, 1e-4)))
+            mismatch_loss = -tf.reduce_mean(tf.log(tf.maximum(1 - pr_real_mismatch, 1e-4)))
             self.loss_disc = config.real_coef * real_loss + config.gen_coef * gen_loss + config.mismatch_coef * mismatch_loss
             self.summs_disc = tf.summary.merge([
                 tf.summary.scalar('real_loss', real_loss),

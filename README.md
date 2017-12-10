@@ -36,33 +36,19 @@ Our loss function has three parts.
 ![alt text](resources/analogy_losses.png)
 
 ## Results
-Results for each action on Penn Action Dataset 
+Results for actions on Penn Action Dataset.
 
 |   Baseball Pitch   |  Baseball Swing  | Bench Press | Bowl |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][pitch]  | ![alt text_2][swing] | ![alt text_3][bench]| ![alt text_4][bowl] |
+| ![alt text][results/baseball_pitch/true.gif] ![alt text][results/baseball_pitch/adam_feat.gif]   | ![alt text][results/baseball_swing/true.gif] ![alt text][results/baseball_swing/adam_feat.gif]  | ![alt text][results/bench_press/true.gif] ![alt text][results/bench_press/adam_feat.gif] | ![alt text][results/bowl/true.gif] ![alt text][results/bowl/adam_feat.gif]  |
 
 |   Clean and Jerk  |  Golf Swing  | Jump Rope | Jumping Jacks |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][clean]  | ![alt text_2][golf] | ![alt text_3][jump]| ![alt text_4][jacks] |
+| ![alt text][results/clean_and_jerk/true.gif] ![alt text][results/clean_and_jerk/adam_feat.gif]   | ![alt text][results/golf_swing/true.gif] ![alt text][results/golf_swing/adam_feat.gif]  | ![alt text][results/jump_rope/true.gif] ![alt text][results/jump_rope/adam_feat.gif] | ![alt text][results/jumping_jacks/true.gif] ![alt text][results/jumping_jacks/adam_feat.gif]  |
 
-|   Pullup  |  Pushup  | Situp | Squat |
+|   Pullup  |  Pushup  | Squat | Tennis Serve |
 | ------------- |:-------------:|:-----:|:-----:|
-| ![alt text][pullup]  | ![alt text_2][pushup] | ![alt text_3][situp]| ![alt text_4][squat] |
-
-
-[pitch]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/pitch.gif 
-[swing]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/swing.gif 
-[bench]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/bench.gif 
-[bowl]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/bowl.gif 
-[clean]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/clean.gif 
-[golf]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/golf.gif 
-[jump]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/jump.gif 
-[jacks]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/jacks.gif 
-[pullup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/pullup.gif 
-[pushup]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/pushup.gif 
-[situp]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/situp.gif 
-[squat]: https://github.com/ZhongxiaYan/video_prediction/blob/master/gifs/squat.gif 
+| ![alt text][results/pullup/true.gif] ![alt text][results/pullup/adam_feat.gif]   | ![alt text][results/pushup/true.gif] ![alt text][results/pushup/adam_feat.gif]  | ![alt text][results/squat/true.gif] ![alt text][results/squat/adam_feat.gif] | ![alt text][results/tennis_serve/true.gif] ![alt text][results/tennis_serve/adam_feat.gif]  |
 
 ## Experimentation
 ### Truncated VGG convolution layers
