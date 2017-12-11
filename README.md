@@ -39,7 +39,9 @@ Our loss function has three parts.
 
 ### LSTM
 We show the ground truth (red) and predicted (orange) location of joints within a cropped frame.
-![alt text](results/lstm/squat.gif)
+<video autoplay controls loop="loop">
+	<source src="results/lstm/squat.mp4" type="video/mp4" />
+</video>
 
 #### Discussion
 Our results show that our implementation of the LSTM network is able to capture the movement of squats accurately. There is high variation in the form and speed of how people do squats. The LSTM model is able to capture an "average" prediction model based on the trained videos. Thus, though the predicted joint locations show a convincing alternative to the ground truth. We show results of pose prediction on squat videos. The squat motions are very similar, albeit at different paces.
