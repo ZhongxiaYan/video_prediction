@@ -91,6 +91,7 @@ An additional note about output of the weaker discriminator is that there is som
 </p>
 Because background images in a video frame tend to be static, we wanted to focus the attention of the network on the human in video. As a result, we ran experiments on feeding in a cropped bounding box around the human and feeding in a full image frame into our models. The boundaries for the cropped images used the provided bounding box annotations provided in the Penn Action Dataset. 
 
+
 Our experiments reveal two interesting findings between full image frame prediction and cropped image frame prediction. First, cropped frame prediction produces more detailed results. This is expected as the network now focuses attention to prediction body parts of the human, rather than learning to transfer background pixels. Second, full image frame prediction captures the pose of the images better. In the gifs above, we can see that a full image frame prediction was able to accurately associate the weights of the squats with the pose compare, outperforming the cropped generation. This is likely due to the receptive field of the convolutions being large enough to better capture features of the pose as the human in the video occupies less space in the video.
 
 ### Comparing Generator Convolution Depths
@@ -116,7 +117,7 @@ Read the source code for `src/run2.py` for some more flag options.
 ```
 python src/run2.py models/villegas_combined_conv4/adam_l2_100_feat/ --gpu 0
 ```
-will train the network specified in `models/villegas_combined_conv4/load_model.py` with the hyperparameters in `models/villegas_combined_conv4/adam_l2_100_feat/config.json`. Add the flag `--train False` to generate output with the latest checkpoint.
+The above command trains the network specified in `models/villegas_combined_conv4/load_model.py` with the hyperparameters in `models/villegas_combined_conv4/adam_l2_100_feat/config.json`. Add the flag `--train False` to generate output gifs with the latest checkpoint.
 
 The Tensorboard logs and sample training outputs (done at specified intervals) are saved to `models/villegas_combined_conv4/adam_l2_100_feat/train`. The results of validation (done at specified intervals) are saved to `models/villegas_combined_conv4/adam_l2_100_feat/val`. The results of testing (done at the end of training or after running with `--train False`) are saved to `models/villegas_combined_conv4/adam_l2_100_feat/test`.
 
